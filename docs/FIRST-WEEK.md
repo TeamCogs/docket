@@ -133,25 +133,30 @@ If all of this renders, the scaffold is healthy. Ctrl-C the server.
 ## Phase 2 — Pull the local models (~30 minutes, mostly download)
 
 ```bash
-# Pulls Qwen3-32B, Qwen3-8B, the embedding model, and the reranker.
+# Pulls Qwen3-32B, Qwen3-8B, and the embedding model.
 pnpm models:pull
 ```
 
-This downloads ~25 GB. Reasonable to start it before you go to lunch.
+This downloads ~22 GB. Reasonable to start it before you go to lunch.
 
-While that runs, you can keep coding — the models live in
+Note: the reranker (`bge-reranker-v2-m3`) is **not** pulled here. Ollama doesn't
+serve cross-encoder rerankers, so week 1 runs the hybrid retriever's top-K
+directly into the generator. The week-2 task is to add a small Python sidecar
+that loads the reranker from HuggingFace and exposes a `/rerank` endpoint;
+the eval harness is designed to measure the precision lift when that lands.
+
+While the pull runs, you can keep coding — the models live in
 `~/.ollama/models/` and don't block anything else.
 
 When it's done, verify each model loads:
 
 ```bash
 ollama list
-# Expect to see: qwen3:32b-instruct-q4_K_M, qwen3:8b-instruct-q4_K_M,
-# nomic-embed-text-v2-moe, bge-reranker-v2-m3
+# Expect to see: qwen3:32b-q4_K_M, qwen3:8b-q4_K_M, nomic-embed-text
 
 # Smoke test inference (will load the model, give it a few seconds):
-ollama run qwen3:32b-instruct-q4_K_M "Say 'hello, lawyer' in exactly three words."
-# Expect: hello, lawyer.
+ollama run qwen3:32b-q4_K_M "Say 'hello, lawyer' in exactly three words."
+# Expect something close to: hello, lawyer.
 ```
 
 If `qwen3:32b` is too slow on your machine (< 15 tok/s), drop it from the
@@ -162,7 +167,7 @@ default in `.env.local`:
 cp .env.example .env.local
 
 # Then edit .env.local:
-DOCKET_MODEL_DEFAULT=qwen3:8b-instruct-q4_K_M
+DOCKET_MODEL_DEFAULT=qwen3:8b-q4_K_M
 ```
 
 ---
@@ -267,7 +272,7 @@ The most likely failure points and fixes:
 | --- | --- | --- |
 | `Cannot find module '@lancedb/lancedb'` | Native binding didn't install | `pnpm rebuild @lancedb/lancedb` |
 | `ECONNREFUSED 127.0.0.1:11434` | Ollama isn't running | `ollama serve` in another terminal |
-| `model 'nomic-embed-text-v2-moe' not found` | Embedding model didn't download | `ollama pull nomic-embed-text-v2-moe` |
+| `model 'nomic-embed-text' not found` | Embedding model didn't download | `ollama pull nomic-embed-text` |
 | PDF parses to empty string | unpdf couldn't read it (scanned) | Skip that file for week 1; note for week 2 OCR work |
 | `Unsupported file type: .docx` | mammoth not installed correctly | `pnpm install mammoth` |
 | OOM on a big PDF | Chunking buffer issue | Reduce target chunk size in `src/lib/chunk.ts` (drop `TARGET_TOKENS` from 800 to 500) |
@@ -542,7 +547,7 @@ surprised you. Recruiters love this. It signals you actually built it.
 | `pnpm dev` 500s on the library page | Check terminal for stack trace | Almost always a server-only lib (lancedb, unpdf) imported into a client component. Move the import into an API route. |
 | Models pull keeps timing out | Network throttling | `ollama pull <model>` directly; resumes. |
 | `ollama serve` says "address in use" | Already running | Skip — already running is the desired state. |
-| Embeddings come back as `[]` | Wrong model name | Confirm `ollama list` shows `nomic-embed-text-v2-moe` exactly. |
+| Embeddings come back as `[]` | Wrong model name | Confirm `ollama list` shows `nomic-embed-text` exactly. |
 | Brief generation hangs > 10 min on one section | Model loaded slow first time; subsequent calls fast | Wait it out once; future runs reuse the cached model. |
 | Suppression rate hits 100% | Re-grounding too aggressive for your text | Lower thresholds in `src/lib/ground.ts`. |
 | Retrieval recall is 0 | LanceDB index didn't build | Delete `data/matters/demo-enron/` and re-ingest. |

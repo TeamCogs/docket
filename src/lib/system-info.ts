@@ -60,8 +60,8 @@ function computeTier(input: {
   chip: SystemSnapshot["chip"];
   totalRamGb: number;
 }): { tier: SystemSnapshot["recommendedTier"]; model: string } {
-  const DEFAULT = process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-instruct-q4_K_M";
-  const FALLBACK = process.env.DOCKET_MODEL_FALLBACK ?? "qwen3:8b-instruct-q4_K_M";
+  const DEFAULT = process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-q4_K_M";
+  const FALLBACK = process.env.DOCKET_MODEL_FALLBACK ?? "qwen3:8b-q4_K_M";
 
   if (input.totalRamGb < 16 || input.chip === "intel_mac") {
     return { tier: "unsupported", model: FALLBACK };

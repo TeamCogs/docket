@@ -60,7 +60,7 @@ export async function* stream(opts: {
 }
 
 /** Single embedding call. Used during ingest and at query time. */
-export async function embed(texts: string[], model = process.env.DOCKET_EMBED_MODEL ?? "nomic-embed-text-v2-moe"): Promise<number[][]> {
+export async function embed(texts: string[], model = process.env.DOCKET_EMBED_MODEL ?? "nomic-embed-text"): Promise<number[][]> {
   const res = await ollama.embed({ model, input: texts });
   return res.embeddings;
 }

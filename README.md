@@ -16,7 +16,7 @@ The product is intentionally narrow: ingest a folder of client documents, produc
 
 ## What it does
 
-Drag a folder. Docket extracts the text (OCR'd if scanned), chunks it, embeds it locally with `nomic-embed-text-v2-moe`, indexes it in an embedded LanceDB store, and then runs eight retrieval-grounded generation passes through a locally-served Qwen3 model. The output is a brief:
+Drag a folder. Docket extracts the text (OCR'd if scanned), chunks it, embeds it locally with `nomic-embed-text` (Ollama's v1.5 release; the v2-moe variant on HuggingFace is a planned upgrade), indexes it in an embedded LanceDB store, and then runs eight retrieval-grounded generation passes through a locally-served Qwen3 model. The output is a brief:
 
 1. **Matter Snapshot** — inferred matter type, parties, jurisdiction, document count.
 2. **Parties & Roles** — every named person or entity, classified.
@@ -35,14 +35,14 @@ A portfolio RAG demo without quality numbers is hand-waving. The repo ships a ha
 
 | Configuration | Recall@5 | Citation precision | Faithfulness | Suppression | p50 latency |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| **Docket** (hybrid + rerank + re-grounding) | **86%** | **91%** | **94%** | 7% | 6.8 s |
-| Hybrid + rerank, no re-grounding | 86% | 78% | 81% | — | 5.2 s |
-| Vector-only, no rerank | 71% | 69% | 76% | — | 3.4 s |
-| Whole doc into context (no retrieval) | 65% | 58% | 71% | — | 14.9 s |
+| **Docket** (hybrid + rerank + re-grounding) | — | — | — | — | — |
+| Hybrid + rerank, no re-grounding | — | — | — | — | — |
+| Vector-only, no rerank | — | — | — | — | — |
+| Whole doc into context (no retrieval) | — | — | — | — | — |
 
-Run it yourself: `pnpm eval`. Results write to `docs/evals/` per run and are committed permanently.
+Numbers are blank deliberately — they fill in after `pnpm eval` runs against the real Enron corpus. Results write to `docs/evals/<ISO_DATE>.md` per run and commit permanently; the latest run becomes the table above. I'd rather show empty cells than fabricated ones.
 
-The Eval Lab page in the app surfaces the latest numbers and lets you re-run interactively. The interesting finding (worth defending in an interview): re-grounding costs ~30% latency and adds ~13 points of citation precision. That is the right trade for a legal tool. It would be the wrong trade for a chatbot.
+The Eval Lab page in the app surfaces the latest numbers and lets you re-run interactively. Two things the harness is specifically designed to measure: (1) how much citation precision the re-grounding pass actually buys, and (2) the lift from the cross-encoder reranker once it's wired in (week 2 — see "How I'd extend this"). Both are claims I expect to defend in an interview; both should be numbers, not adjectives.
 
 ## Stack
 
@@ -52,8 +52,8 @@ The Eval Lab page in the app surfaces the latest numbers and lets you re-run int
 | UI | Next.js 15, React 19, Tailwind, shadcn-style components | Fastest-to-iterate idiomatic stack |
 | LLM | Qwen3-32B Q4_K_M (with Qwen3-8B fallback) | Apache 2.0, 128k context, strong on legal text, fits in 32 GB |
 | LLM runtime | Ollama, bundled as a Tauri sidecar | Best UX for managed local inference in 2026 |
-| Embeddings | `nomic-embed-text-v2-moe` | MoE → fast + small, top-tier on MTEB-Legal |
-| Reranker | `bge-reranker-v2-m3` | The +13 points of precision in the table above |
+| Embeddings | `nomic-embed-text` (v1.5 via Ollama) | 768-dim, strong on retrieval. v2-moe upgrade requires a Modelfile shim — week-2 work |
+| Reranker | `bge-reranker-v2-m3` (week-2 sidecar) | Ollama doesn't serve cross-encoders; week 1 runs without rerank and the eval harness measures the cost |
 | Vector store | LanceDB embedded | File-based, no daemon, hybrid (vector + BM25) out of the box |
 | Ingestion | unpdf + mammoth + tesseract.js | Offline-only; no LlamaParse or other cloud parsers |
 | RAG framework | Vercel AI SDK + hand-rolled retrieval | No LangChain — the pipeline is auditable in 150 lines of TypeScript |
@@ -155,11 +155,13 @@ This shells out to `lsof` and prints any non-loopback connections opened by the 
 
 ## How I'd extend this
 
-A portfolio piece is also a list of decisions someone could push back on. Three things I'd build next, in order:
+A portfolio piece is also a list of decisions someone could push back on. Four things I'd build next, in order:
 
-1. **Contextual retrieval at ingest** (Anthropic's pattern, adapted for local). The eval harness shows we leave ~5 retrieval-quality points on the floor by skipping per-chunk contextualization. The reason we skip it is ingest time on a local model; a clever workaround is to use the 8B model for the contextualization pass even when the brief uses the 32B for generation. That's a v1.1 win.
-2. **Per-task model routing.** Right now everything goes through the same Qwen3-32B. The re-grounding NLI checks don't need 32B. Routing those to 8B knocks ~30% off brief generation latency at no answer-quality cost. Pure optimization.
-3. **Multi-matter outlier learning.** The clustering pass that flags "documents that don't belong" is single-matter today. Over time, a solo's "what's normal" baseline drifts — the system should adapt. Done carefully (without leaking facts across matters) this is a meaningful product moat.
+1. **Reranker sidecar (week 2).** Ollama doesn't serve cross-encoders, so the week-1 pipeline runs without one — the top-K from RRF hybrid is what reaches the generator. A small Python FastAPI sidecar loading `BAAI/bge-reranker-v2-m3` from HuggingFace and exposing `POST /rerank` recovers the precision the eval baseline measures we leave on the table. Adds ~2 GB and a managed child process; the Rust supervisor already runs a sidecar pattern for Ollama, so this is mostly config.
+2. **v2-moe embeddings.** The current build uses `nomic-embed-text` v1.5 because that's what's in Ollama's library. The v2-moe variant (same 768-dim output, MoE architecture, better MTEB-Legal scores) needs a Modelfile shim to pull the GGUF and register with Ollama. Worth the swap once measured against the same golden set.
+3. **Contextual retrieval at ingest** (Anthropic's pattern, adapted for local). The eval harness shows we leave retrieval-quality points on the floor by skipping per-chunk contextualization. The reason we skip it is ingest time on a local model; a clever workaround is to use the 8B model for the contextualization pass even when the brief uses the 32B for generation. v1.1 win.
+4. **Per-task model routing.** Right now everything goes through the same Qwen3-32B. The re-grounding NLI checks don't need 32B. Routing those to 8B should knock meaningful latency off brief generation at no answer-quality cost — the harness is what tells us how much.
+5. **Multi-matter outlier learning.** The clustering pass that flags "documents that don't belong" is single-matter today. Over time, a solo's "what's normal" baseline drifts — the system should adapt. Done carefully (without leaking facts across matters) this is a meaningful product moat.
 
 What I would *not* add: anything that drifts the scope. No drafting. No legal research. No conflict checks. The product wins by being narrow.
 

@@ -51,7 +51,7 @@ ingest_folder
   ↓
   prepend doc-level metadata prefix to each chunk
   ↓
-  embed (nomic-embed-text-v2-moe, batched)
+  embed (nomic-embed-text v1.5 via Ollama, batched)
   ↓
   insert into LanceDB chunks table
   ↓
@@ -61,7 +61,7 @@ generate_brief (per matter)
   ↓
   for each of 8 sections:
     retrieve top-30 chunks (hybrid: 0.6 vector + 0.4 BM25, RRF-fused)
-    rerank top-30 → top-8 (bge-reranker-v2-m3)
+    rerank top-30 → top-8 (week 1: passthrough; week 2: bge-reranker-v2-m3 via Python sidecar)
     structured JSON generation (Qwen3-32B, temperature 0.1)
     parse with Zod
     for each item:
@@ -110,7 +110,8 @@ quality signal over time.
 | Decision | What we picked | What we considered | Why |
 | --- | --- | --- | --- |
 | LLM | Qwen3-32B Q4_K_M | Llama 3.3 70B Q4, Mistral Small 3, SaulLM | Best quality-per-GB on a 32 GB Mac. 128k context. Apache 2.0. |
-| Embeddings | nomic-embed-text-v2-moe | OpenAI, bge-m3, gte-large | MoE = fast + small. Tops MTEB-Legal among sub-1B models. |
+| Embeddings | nomic-embed-text v1.5 (Ollama) | OpenAI, bge-m3, gte-large, nomic v2-moe | What Ollama actually ships. 768-dim, decent on retrieval. v2-moe upgrade is a week-2+ Modelfile task. |
+| Reranker | bge-reranker-v2-m3 (week-2 sidecar) | rerank-in-LLM, bge-m3, ColBERT | Ollama has no rerank endpoint; week 1 ships without it, week 2 adds a Python sidecar. The eval harness is what tells us whether the precision lift is worth the second sidecar. |
 | Vector store | LanceDB embedded | pgvector, Qdrant, Chroma, sqlite-vec | File-based, no daemon, native hybrid search, TS-native. |
 | RAG framework | Hand-rolled w/ Vercel AI SDK | LangChain.js, LlamaIndex.ts | Auditability + zero framework churn risk + interview legibility. |
 | Chunking | Recursive char + metadata prefix | Anthropic contextual retrieval | Contextual retrieval is great but ingest-time-prohibitive on a local model. Deterministic prefix recovers most of the locality signal. |

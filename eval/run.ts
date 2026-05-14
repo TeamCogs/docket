@@ -45,7 +45,7 @@ async function main() {
     id: `run_${Date.now()}`,
     matterId: args.matterId,
     runAt: new Date().toISOString(),
-    modelVersion: process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-instruct-q4_K_M",
+    modelVersion: process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-q4_K_M",
     goldenSetVersion: "v0.1",
     metrics: {
       retrievalRecallAt5: 0,

@@ -25,7 +25,7 @@ import type { Chunk, Citation, GroundingState } from "./types";
 const TIER1_OVERLAP = 0.4;
 const TIER2_COS = 0.78;
 
-const MODEL = process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-instruct-q4_K_M";
+const MODEL = process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-q4_K_M";
 
 export interface GroundingInput {
   claim: string;

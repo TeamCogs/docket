@@ -1,5 +1,5 @@
 /**
- * Hybrid retrieval — vector + BM25, then a reranker on top.
+ * Hybrid retrieval — vector + BM25, with rerank pluggable on top.
  *
  * Why hybrid: dense embeddings handle paraphrase well; BM25 handles exact
  * matches well (party names, statute numbers, dates). Legal documents punish
@@ -7,16 +7,19 @@
  * the deal in October 2001?" and the right chunk is one that literally
  * contains "Lay", "Watkins", and "October 2001". Mix early, rerank late.
  *
- * Why rerank: the top-30 from a hybrid pass has good recall but mediocre
- * ordering. A cross-encoder rerank (bge-reranker-v2-m3 via Ollama) costs
- * one inference call and gains ~15-20% citation precision in our evals.
+ * Reranking status: Ollama (as of May 2026) does not serve cross-encoder
+ * rerankers. The week-1 build runs without rerank — just the top-K from the
+ * RRF-fused hybrid pass. Week 2 work adds a small Python sidecar that loads
+ * BAAI/bge-reranker-v2-m3 and exposes a /rerank endpoint. The eval harness
+ * is what tells us how much precision we leave on the table by skipping it.
+ * See TODO[scott] below.
  */
 
-import { embed, complete } from "./ollama";
+import { embed } from "./ollama";
 import { bm25Search, getChunksTable, openMatter, vectorSearch } from "./lancedb";
 import type { Chunk, ChunkId, MatterId } from "./types";
 
-const EMBEDDING_DIM = 768; // nomic-embed-text-v2-moe
+const EMBEDDING_DIM = 768; // nomic-embed-text (Ollama, v1.5)
 
 const HYBRID_TOP_K = 30;
 const RERANK_TOP_K = 8;
@@ -61,8 +64,9 @@ export async function retrieve(matterId: MatterId, query: string): Promise<Retri
     .slice(0, HYBRID_TOP_K)
     .map(([id, score]) => ({ row: byId.get(id)!, score }));
 
-  // Rerank the fused list with the cross-encoder.
-  const reranked = await rerank(query, fused);
+  // Rerank step. Week 1: passthrough (returns the top-K from RRF as-is).
+  // Week 2: swap in the bge-reranker-v2-m3 sidecar — see TODO[scott] below.
+  const reranked = await rerankCandidates(query, fused);
 
   return reranked.slice(0, RERANK_TOP_K).map(({ row, score }) => ({
     chunk: rowToChunk(row),
@@ -70,33 +74,24 @@ export async function retrieve(matterId: MatterId, query: string): Promise<Retri
   }));
 }
 
-/** bge-reranker-v2-m3 via Ollama. Cross-encoder = expensive, so we batch. */
-async function rerank(
-  query: string,
+/**
+ * Cross-encoder rerank.
+ *
+ * TODO[scott] week 2: implement this against a Python sidecar that loads
+ * BAAI/bge-reranker-v2-m3. The sidecar should expose POST /rerank taking
+ * { query: string, passages: string[] } and returning { scores: number[] }.
+ * Re-run `pnpm eval` before and after to capture the precision delta on
+ * the Enron golden set — the README claim depends on a measured number.
+ *
+ * For week 1 this is a passthrough so the pipeline runs end-to-end without
+ * the reranker. The hybrid-retrieval-only ordering is good enough to
+ * demonstrate the rest of the system (grounding, citation rendering, eval).
+ */
+async function rerankCandidates(
+  _query: string,
   hits: Array<{ row: { chunk_id: string; text: string; doc_metadata_prefix: string }; score: number }>,
-): Promise<Array<{ row: { chunk_id: string; text: string; doc_metadata_prefix: string; [k: string]: unknown }; score: number }>> {
-  // Ollama doesn't (yet, as of May 2026) expose a dedicated rerank endpoint.
-  // We coax a binary-ish score by asking the reranker model to emit a 0..1
-  // float. For production we'd swap this for a proper FlagEmbedding service
-  // — see TODO[v1.1].
-  const model = process.env.DOCKET_RERANK_MODEL ?? "bge-reranker-v2-m3";
-
-  const rescored = await Promise.all(
-    hits.map(async ({ row, score }) => {
-      const prompt = `Query: ${query}\n\nPassage: ${row.doc_metadata_prefix}\n${row.text}\n\nRelevance score (0.0-1.0):`;
-      try {
-        const raw = await complete({ model, prompt, temperature: 0 });
-        const f = parseFloat(raw.trim().split(/\s+/)[0]);
-        const reranked = Number.isFinite(f) ? Math.max(0, Math.min(1, f)) : score;
-        return { row, score: reranked };
-      } catch {
-        // If the rerank model isn't present, fall back to hybrid score.
-        return { row, score };
-      }
-    }),
-  );
-  rescored.sort((a, b) => b.score - a.score);
-  return rescored as unknown as typeof hits;
+): Promise<typeof hits> {
+  return hits;
 }
 
 function rowToChunk(row: {

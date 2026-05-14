@@ -17,7 +17,7 @@ const cit = (id: string): Citation => ({
 export const MOCK_ENRON_BRIEF: Brief = {
   matterId: "demo-enron",
   generatedAt: new Date().toISOString(),
-  modelVersion: "qwen3:32b-instruct-q4_K_M",
+  modelVersion: "qwen3:32b-q4_K_M",
   totalSuppressed: 3,
   latencyMs: {
     snapshot: 4_120,
@@ -34,7 +34,7 @@ export const MOCK_ENRON_BRIEF: Brief = {
       id: "s1",
       kind: "snapshot",
       generatedAt: new Date().toISOString(),
-      modelVersion: "qwen3:32b-instruct-q4_K_M",
+      modelVersion: "qwen3:32b-q4_K_M",
       suppressedCount: 0,
       content: {
         matterTypeGuess: "Securities enforcement / accounting fraud",
@@ -49,7 +49,7 @@ export const MOCK_ENRON_BRIEF: Brief = {
       id: "s2",
       kind: "parties",
       generatedAt: new Date().toISOString(),
-      modelVersion: "qwen3:32b-instruct-q4_K_M",
+      modelVersion: "qwen3:32b-q4_K_M",
       suppressedCount: 0,
       content: {
         parties: [
@@ -66,7 +66,7 @@ export const MOCK_ENRON_BRIEF: Brief = {
       id: "s3",
       kind: "timeline",
       generatedAt: new Date().toISOString(),
-      modelVersion: "qwen3:32b-instruct-q4_K_M",
+      modelVersion: "qwen3:32b-q4_K_M",
       suppressedCount: 1,
       content: {
         events: [
@@ -82,7 +82,7 @@ export const MOCK_ENRON_BRIEF: Brief = {
       id: "s4",
       kind: "claims",
       generatedAt: new Date().toISOString(),
-      modelVersion: "qwen3:32b-instruct-q4_K_M",
+      modelVersion: "qwen3:32b-q4_K_M",
       suppressedCount: 0,
       content: {
         claims: [
@@ -96,7 +96,7 @@ export const MOCK_ENRON_BRIEF: Brief = {
       id: "s5",
       kind: "key_facts",
       generatedAt: new Date().toISOString(),
-      modelVersion: "qwen3:32b-instruct-q4_K_M",
+      modelVersion: "qwen3:32b-q4_K_M",
       suppressedCount: 1,
       content: {
         facts: [
@@ -109,7 +109,7 @@ export const MOCK_ENRON_BRIEF: Brief = {
       id: "s6",
       kind: "risks",
       generatedAt: new Date().toISOString(),
-      modelVersion: "qwen3:32b-instruct-q4_K_M",
+      modelVersion: "qwen3:32b-q4_K_M",
       suppressedCount: 0,
       content: {
         risks: [
@@ -122,7 +122,7 @@ export const MOCK_ENRON_BRIEF: Brief = {
       id: "s7",
       kind: "open_questions",
       generatedAt: new Date().toISOString(),
-      modelVersion: "qwen3:32b-instruct-q4_K_M",
+      modelVersion: "qwen3:32b-q4_K_M",
       suppressedCount: 1,
       content: {
         questions: [
@@ -135,7 +135,7 @@ export const MOCK_ENRON_BRIEF: Brief = {
       id: "s8",
       kind: "next_steps",
       generatedAt: new Date().toISOString(),
-      modelVersion: "qwen3:32b-instruct-q4_K_M",
+      modelVersion: "qwen3:32b-q4_K_M",
       suppressedCount: 0,
       content: {
         steps: [

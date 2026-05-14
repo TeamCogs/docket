@@ -43,8 +43,8 @@ fn inferred_chip() -> String {
 }
 
 fn compute_tier(chip: &str, ram_gb: u64) -> (String, String) {
-    const DEFAULT: &str = "qwen3:32b-instruct-q4_K_M";
-    const FALLBACK: &str = "qwen3:8b-instruct-q4_K_M";
+    const DEFAULT: &str = "qwen3:32b-q4_K_M";
+    const FALLBACK: &str = "qwen3:8b-q4_K_M";
     if ram_gb < 16 || chip == "intel_mac" {
         return ("unsupported".into(), FALLBACK.into());
     }

@@ -10,10 +10,11 @@ if ! command -v ollama >/dev/null 2>&1; then
 fi
 
 MODELS=(
-  "qwen3:32b-instruct-q4_K_M"
-  "qwen3:8b-instruct-q4_K_M"
-  "nomic-embed-text-v2-moe"
-  "bge-reranker-v2-m3"
+  "qwen3:32b-q4_K_M"
+  "qwen3:8b-q4_K_M"
+  "nomic-embed-text"
+  # bge-reranker-v2-m3 is not in the Ollama registry. See README §"Reranker".
+  # Week-1 runs without it; the pipeline still works, precision is just lower.
 )
 
 echo "Pulling Docket's local models. This is a one-time download (~25 GB total)."

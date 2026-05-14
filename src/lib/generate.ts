@@ -45,7 +45,7 @@ const SECTION_ORDER: BriefSectionKind[] = [
   "next_steps",
 ];
 
-const MODEL = process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-instruct-q4_K_M";
+const MODEL = process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-q4_K_M";
 
 export interface GenerateOptions {
   matterId: MatterId;

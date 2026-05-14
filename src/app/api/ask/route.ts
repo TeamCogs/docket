@@ -16,7 +16,7 @@ import type { NextRequest } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MODEL = process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-instruct-q4_K_M";
+const MODEL = process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-q4_K_M";
 
 export async function POST(req: NextRequest) {
   const { matterId, question } = (await req.json()) as { matterId: string; question: string };
