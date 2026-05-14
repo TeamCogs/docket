@@ -1,0 +1,37 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# next
+.next
+out
+
+# tauri
+src-tauri/target
+src-tauri/Cargo.lock
+
+# env + local data
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode
+.idea
+
+# Local matter data — under no circumstances should real client data
+# end up in source control. Demo corpus lives at demo-data/enron/.
+data/
+matters/
+
+# Logs
+*.log
+logs/
+
+# Build outputs
+*.tsbuildinfo
+next-env.d.ts

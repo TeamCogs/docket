@@ -1,0 +1,564 @@
+# First Week — From Clone to a Real Brief
+
+The scaffold is done. This guide takes you from a fresh `git clone` to seeing
+Docket render a real brief over ~10 actual Enron documents. The goal is
+**validate the pipeline end-to-end with real model inference** before you
+touch anything else. Once you've seen Qwen3 produce a real cited brief in
+your browser, every subsequent week of work — UI polish, Tauri wrapping,
+eval expansion — is downhill.
+
+Estimated time: 8–14 focused hours spread across the week. The slowest part
+is the one-time model download (~25 GB).
+
+If you get stuck, jump to the troubleshooting section at the bottom.
+
+---
+
+## Phase 0 — Prerequisites
+
+You need:
+
+- **macOS** on Apple Silicon (M1/M2/M3/M4). 32 GB RAM strongly recommended;
+  16 GB will work but with the Qwen3-8B fallback.
+- **~60 GB free disk** (models + LanceDB index + node_modules).
+- **An hour or two of focused setup time**, plus the model download running
+  in the background.
+
+Optional but useful:
+- A second monitor for the model download terminal vs your editor.
+- Little Snitch or another network monitor to satisfy yourself that the
+  "no data leaves" claim holds.
+
+---
+
+## Phase 1 — Environment setup (~30 minutes plus downloads)
+
+### 1.1 Install Node + pnpm
+
+```bash
+# If you don't have Node 20+:
+brew install node@20
+brew link --overwrite node@20
+
+# pnpm:
+corepack enable
+corepack prepare pnpm@9.15.0 --activate
+```
+
+Verify:
+
+```bash
+node -v   # → v20.x or higher
+pnpm -v   # → 9.15.x
+```
+
+### 1.2 Install Ollama
+
+```bash
+brew install ollama
+# or download from https://ollama.com
+```
+
+Start it as a service (so it's always available) or run it manually in a
+terminal:
+
+```bash
+brew services start ollama
+# or, in a dedicated terminal:
+ollama serve
+```
+
+Verify:
+
+```bash
+curl http://127.0.0.1:11434/api/version
+# → {"version":"..."}
+```
+
+### 1.3 (Optional, deferred) Install Rust + Xcode CLT
+
+You only need these for the Tauri build, which is week 3–4 work. Skip for
+now — `pnpm dev` runs the full app in the browser without them.
+
+```bash
+# When you eventually want to do the Tauri build:
+xcode-select --install
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+### 1.4 Initialize the repo on GitHub
+
+```bash
+cd ~/path/to/docket   # the scaffold directory
+git init
+git add .
+git commit -m "Initial scaffold"
+
+# Create the repo on GitHub (via web or gh CLI), then:
+gh repo create docket --public --source=. --remote=origin --push
+# or, manually:
+git remote add origin https://github.com/<you>/docket.git
+git branch -M main
+git push -u origin main
+```
+
+### 1.5 Install npm dependencies
+
+```bash
+pnpm install
+```
+
+This will take 2–3 minutes. Watch for errors on `@lancedb/lancedb` — it
+ships native bindings that have to compile or fetch a prebuilt for your
+arch. If it fails, see troubleshooting below.
+
+### 1.6 Verify the dev server boots
+
+```bash
+pnpm dev
+```
+
+Open `http://localhost:3000`. You should see:
+
+- Library page with one mock "Enron — first read" matter.
+- Click into the mock matter → see the eight-section brief render.
+- Click any footnote → citation panel slides in (mobile) or pops out (desktop).
+- Eval Lab page → the placeholder comparison table.
+- Settings page → your real system specs detected.
+
+If all of this renders, the scaffold is healthy. Ctrl-C the server.
+
+---
+
+## Phase 2 — Pull the local models (~30 minutes, mostly download)
+
+```bash
+# Pulls Qwen3-32B, Qwen3-8B, the embedding model, and the reranker.
+pnpm models:pull
+```
+
+This downloads ~25 GB. Reasonable to start it before you go to lunch.
+
+While that runs, you can keep coding — the models live in
+`~/.ollama/models/` and don't block anything else.
+
+When it's done, verify each model loads:
+
+```bash
+ollama list
+# Expect to see: qwen3:32b-instruct-q4_K_M, qwen3:8b-instruct-q4_K_M,
+# nomic-embed-text-v2-moe, bge-reranker-v2-m3
+
+# Smoke test inference (will load the model, give it a few seconds):
+ollama run qwen3:32b-instruct-q4_K_M "Say 'hello, lawyer' in exactly three words."
+# Expect: hello, lawyer.
+```
+
+If `qwen3:32b` is too slow on your machine (< 15 tok/s), drop it from the
+default in `.env.local`:
+
+```bash
+# Create .env.local from the example:
+cp .env.example .env.local
+
+# Then edit .env.local:
+DOCKET_MODEL_DEFAULT=qwen3:8b-instruct-q4_K_M
+```
+
+---
+
+## Phase 3 — Get a real Enron corpus (~30 minutes)
+
+You don't need the whole archive. 8–12 well-chosen documents are enough to
+exercise every part of the pipeline and produce a believable brief. Aim for
+a mix: structured filings, free-text correspondence, and at least one
+scanned PDF if you can find one.
+
+### 3.1 Recommended seed documents
+
+Drop these into `demo-data/enron/`:
+
+| Document | Source | Why include it |
+| --- | --- | --- |
+| SEC v. Lay (2004) complaint | sec.gov/litigation/litreleases/lr18776.htm | The "official narrative." Tests structured-text extraction. |
+| Powers Report (Feb 2002) | en.wikisource.org has the full text | Long, dense, paragraph-heavy. Tests chunking. |
+| Sherron Watkins memo (Aug 2001) | houstonchronicle.com archive; also in the Congressional record | Short, dramatic, easy to spot-check citations against. |
+| Enron 10-K for FY1999 | EDGAR — `enron-corp` ticker, year 1999 | Tables-heavy. Tests the PDF parser on real financial filings. |
+| Enron 10-K for FY2000 | Same | Contradicts later restatements. Tests the contradiction-flagging path. |
+| Enron 8-K Nov 8 2001 (restatement) | EDGAR | The "smoking gun" date. Tests timeline extraction. |
+| 5–10 emails from the FERC release | cmu.edu Enron Email Dataset (the `enron_mail_20150507.tar.gz` is the canonical) | Free-form text. Tests the .eml extractor. |
+
+For the FERC emails: just grab a couple of folders that mention key people
+(Lay, Skilling, Fastow, Watkins) and save them as `.eml` files into
+`demo-data/enron/emails/`.
+
+### 3.2 What if I can't find a scanned PDF?
+
+That's fine for week 1. Skipping OCR doesn't block the pipeline — the
+`ocr.ts` module is stubbed, and text-layer PDFs go through `unpdf` cleanly.
+Note in your dev journal that OCR is week-2 work.
+
+### 3.3 What you should have at this point
+
+```
+demo-data/enron/
+├── README.md          (already there from the scaffold)
+├── sec-complaint-lay.pdf
+├── powers-report.pdf
+├── watkins-memo.pdf
+├── enron-10k-1999.pdf
+├── enron-10k-2000.pdf
+├── enron-8k-2001-11-08.pdf
+└── emails/
+    ├── lay-2001-08-22.eml
+    ├── skilling-2001-08-14.eml
+    └── ... (a handful more)
+```
+
+Total: 8–12 files, maybe 60 MB on disk.
+
+---
+
+## Phase 4 — First ingest from a CLI (~30 minutes)
+
+Don't try to make the UI drop-zone work yet. Test the ingestion pipeline
+from a Node script first. That isolates "is my pipeline correct" from
+"is my UI wired up correctly."
+
+### 4.1 Create a one-off CLI script
+
+Create `scripts/ingest.ts`:
+
+```ts
+import { ingestFolder } from "../src/lib/ingest";
+
+const matterId = process.argv[2] ?? "demo-enron";
+const matterName = process.argv[3] ?? "Enron — first read";
+const folder = process.argv[4] ?? "demo-data/enron";
+
+console.log(`Ingesting ${folder} as matter '${matterId}'…`);
+const result = await ingestFolder(matterId, matterName, folder, (p) => {
+  process.stdout.write(`\r[${p.done}/${p.total}] ${p.current ?? ""}        `);
+});
+console.log("\nDone:", {
+  docs: result.documents.length,
+  chunks: result.totalChunks,
+  outliers: result.outlierDocIds.length,
+});
+```
+
+Run it:
+
+```bash
+pnpm tsx scripts/ingest.ts
+```
+
+What should happen:
+- Each document prints as it's processed.
+- After a few minutes (mostly embedding), you'll see a summary:
+  `Done: { docs: 10, chunks: ~420, outliers: 0 or 1 }`.
+- A `data/matters/demo-enron/vectors.lance/` directory will exist on disk.
+
+### 4.2 If it errors out
+
+The most likely failure points and fixes:
+
+| Error | Likely cause | Fix |
+| --- | --- | --- |
+| `Cannot find module '@lancedb/lancedb'` | Native binding didn't install | `pnpm rebuild @lancedb/lancedb` |
+| `ECONNREFUSED 127.0.0.1:11434` | Ollama isn't running | `ollama serve` in another terminal |
+| `model 'nomic-embed-text-v2-moe' not found` | Embedding model didn't download | `ollama pull nomic-embed-text-v2-moe` |
+| PDF parses to empty string | unpdf couldn't read it (scanned) | Skip that file for week 1; note for week 2 OCR work |
+| `Unsupported file type: .docx` | mammoth not installed correctly | `pnpm install mammoth` |
+| OOM on a big PDF | Chunking buffer issue | Reduce target chunk size in `src/lib/chunk.ts` (drop `TARGET_TOKENS` from 800 to 500) |
+
+### 4.3 Sanity check the LanceDB contents
+
+Create `scripts/peek.ts`:
+
+```ts
+import { openMatter, getChunksTable } from "../src/lib/lancedb";
+
+const conn = await openMatter("demo-enron");
+const table = await getChunksTable(conn, 768);
+const sample = await table.query().limit(3).toArray();
+console.log("First 3 chunks:");
+for (const row of sample) {
+  console.log("---");
+  console.log(`chunk_id: ${(row as any).chunk_id}`);
+  console.log(`text (first 200 chars): ${(row as any).text.slice(0, 200)}`);
+}
+```
+
+```bash
+pnpm tsx scripts/peek.ts
+```
+
+You should see real chunk text from your Enron documents. If the text is
+garbled or empty, the extraction pipeline has a problem worth debugging
+before you move on.
+
+---
+
+## Phase 5 — First brief generation (~30–60 minutes including model warmup)
+
+### 5.1 Generate a brief from the CLI
+
+Create `scripts/brief.ts`:
+
+```ts
+import { generateBrief } from "../src/lib/generate";
+import { writeFileSync } from "node:fs";
+
+const brief = await generateBrief({
+  matterId: "demo-enron",
+  matterName: "Enron — first read",
+  onSectionReady: (s) => {
+    console.log(
+      `✓ ${s.kind} — ${("content" in s ? JSON.stringify(s.content).length : 0)} chars, ${s.suppressedCount} suppressed`,
+    );
+  },
+});
+writeFileSync("data/matters/demo-enron/brief.json", JSON.stringify(brief, null, 2));
+console.log("\nBrief written. Total suppressed:", brief.totalSuppressed);
+```
+
+```bash
+pnpm tsx scripts/brief.ts
+```
+
+This will take **3–8 minutes on an M2 Pro 32 GB**. Each section is its own
+retrieval + generation + re-grounding pass. Watch the sections complete in
+order: snapshot → parties → timeline → claims → key_facts → risks →
+open_questions → next_steps.
+
+### 5.2 What to look for
+
+When it finishes, open `data/matters/demo-enron/brief.json` in your editor.
+Read each section. Ask yourself:
+
+- Do the **parties** include Lay, Skilling, Fastow, Watkins, Andersen, and
+  Enron Corp.? If not, the parties query in `prompts/sections.ts` needs
+  tuning.
+- Does the **timeline** include 2001-08-14 (Skilling resignation), 2001-10-16
+  (Q3 earnings), 2001-11-08 (restatement), 2001-12-02 (bankruptcy)? Missing
+  major dates means retrieval isn't pulling the right chunks.
+- Does at least one **risk** flag the contradiction between Lay's October
+  public statements and the internal board materials? If yes, the
+  contradiction-detection prompt is doing its job.
+- How many claims got **suppressed**? Zero is suspicious (re-grounding too
+  lenient); 50%+ is also suspicious (retrieval mismatched or chunks too
+  small). 10–20% is a healthy sign that the pipeline is catching
+  hallucinations.
+
+This is the moment you'll genuinely have a feel for whether the architecture
+works. If it does, you've validated the entire portfolio thesis. If it
+doesn't, you have a concrete list of things to fix.
+
+### 5.3 If the brief is empty or wrong
+
+Common causes, in order of frequency:
+
+1. **Retrieval mismatched.** The retrieval queries in
+   `src/lib/prompts/sections.ts` are generic. Edit them for the Enron domain
+   ("Enron special purpose entity SPE LJM Raptor", "Skilling Lay Fastow
+   resigned").
+2. **Re-grounding too strict.** Edit `src/lib/ground.ts` to lower
+   `TIER1_OVERLAP` from 0.4 to 0.3 and `TIER2_COS` from 0.78 to 0.7.
+3. **Model returning malformed JSON.** Check the raw model output by adding
+   a `console.log(raw)` in `src/lib/generate.ts` before the
+   `SectionRawSchema.parse()` call.
+4. **Chunks too small to carry context.** Bump `TARGET_TOKENS` in
+   `src/lib/chunk.ts` from 800 to 1200.
+
+---
+
+## Phase 6 — Wire it to the UI (~2–3 hours)
+
+Now connect what works in the CLI to the dev server.
+
+### 6.1 Replace the mock brief on the matter page
+
+Edit `src/app/matter/[id]/page.tsx`:
+
+```tsx
+import BriefView from "@/components/brief/BriefView";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import type { Brief } from "@/lib/types";
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function MatterPage({ params }: PageProps) {
+  const { id } = await params;
+  const briefPath = join(
+    process.env.DOCKET_DATA_DIR ?? "./data/matters",
+    id,
+    "brief.json",
+  );
+  let brief: Brief | null = null;
+  try {
+    brief = JSON.parse(await readFile(briefPath, "utf-8")) as Brief;
+  } catch {
+    /* no brief yet */
+  }
+  if (!brief) {
+    return (
+      <div className="mx-auto max-w-prose py-10 text-ink-500">
+        No brief yet. Run <code>pnpm tsx scripts/brief.ts</code> first.
+      </div>
+    );
+  }
+  return <BriefView brief={brief} />;
+}
+```
+
+Restart `pnpm dev` and navigate to `/matter/demo-enron`. You should see the
+brief you generated in Phase 5, rendered with real data.
+
+### 6.2 Wire the citation panel to the real source span
+
+Edit `src/components/brief/CitationPanel.tsx`. Replace the `<em>The cited
+paragraph will render here...</em>` placeholder with a fetch from a new API
+route. Add `src/app/api/source/[chunkId]/route.ts`:
+
+```ts
+import { openMatter, getChunksTable, getChunk } from "@/lib/lancedb";
+import type { NextRequest } from "next/server";
+
+export const runtime = "nodejs";
+
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ chunkId: string }> }) {
+  const { chunkId } = await params;
+  // chunk_id is "<docId>#<idx>"; the matterId we'd need to thread through
+  // properly. For week 1, hard-code demo-enron.
+  const conn = await openMatter("demo-enron");
+  const table = await getChunksTable(conn, 768);
+  const row = await getChunk(table, chunkId);
+  if (!row) return Response.json({ error: "not found" }, { status: 404 });
+  return Response.json({
+    chunkId: row.chunk_id,
+    docId: row.doc_id,
+    page: row.page_start,
+    text: row.text,
+  });
+}
+```
+
+Then in `CitationPanel.tsx`, swap the placeholder for a `useEffect` that
+fetches `/api/source/${citation.chunkIds[0]}` and renders the returned text.
+
+### 6.3 Optional: the drop-zone wiring
+
+For week 1, skip this — generating new matters via CLI is fine. The
+`DropZone.tsx` wiring is week-2 work because it requires a folder-picker
+shim (browsers can't read folder paths directly; you need either a Tauri
+IPC or the File System Access API with a permission prompt).
+
+---
+
+## Phase 7 — First real eval run (~1 hour)
+
+Now you have one matter with one brief. Run the eval harness against it.
+
+### 7.1 Expand the golden set
+
+The scaffold ships 10 questions in `eval/golden-set.jsonl`. Add 10–15 more,
+focused on the documents you actually ingested. Each line:
+
+```json
+{"id":"g011","category":"timeline","question":"...","expectedAnswer":"...","expectedSource":{"docId":"<docId-prefix>","page":<n>}}
+```
+
+For `docId`, peek at `data/matters/demo-enron/manifest.json` (or query
+LanceDB) to get the actual sha256 hash prefix of each document.
+
+### 7.2 Run the eval
+
+The shipped `eval/run.ts` is a stub. Wire it to actually retrieve over your
+matter:
+
+```ts
+// Replace the stubbed metrics block with:
+import { retrieve } from "../src/lib/retrieve";
+
+for (const q of questions) {
+  const t0 = Date.now();
+  const hits = await retrieve(args.matterId, q.question);
+  const latencyMs = Date.now() - t0;
+  const retrievedTop = hits.slice(0, 5).some((h) =>
+    h.chunk.docId.startsWith(q.expectedSource.docId) &&
+    h.chunk.pageStart <= q.expectedSource.page &&
+    h.chunk.pageEnd >= q.expectedSource.page,
+  );
+  run.perQuestion.push({
+    questionId: q.id,
+    retrievedTop,
+    citationCorrect: retrievedTop,
+    faithful: true,
+    suppressed: false,
+    latencyMs,
+  });
+}
+run.metrics.retrievalRecallAt5 =
+  run.perQuestion.filter((x) => x.retrievedTop).length / run.perQuestion.length;
+run.metrics.p50LatencyMs =
+  run.perQuestion.map((x) => x.latencyMs).sort((a, b) => a - b)[
+    Math.floor(run.perQuestion.length / 2)
+  ];
+```
+
+Run:
+
+```bash
+pnpm eval
+```
+
+You'll get a real recall@5 number. Commit the results file in `docs/evals/`.
+This is the artifact you can point at in interviews.
+
+---
+
+## Phase 8 — Commit, push, write the dev journal entry (~1 hour)
+
+```bash
+git add .
+git commit -m "Week 1: end-to-end pipeline working over 10 Enron docs"
+git push
+```
+
+In your README or a `docs/dev-journal.md`, write 200–400 words on what you
+learned this week. Specifics — what failed first, what you tuned, what
+surprised you. Recruiters love this. It signals you actually built it.
+
+---
+
+## Troubleshooting cheat sheet
+
+| Symptom | Diagnostic | Fix |
+| --- | --- | --- |
+| `pnpm dev` 500s on the library page | Check terminal for stack trace | Almost always a server-only lib (lancedb, unpdf) imported into a client component. Move the import into an API route. |
+| Models pull keeps timing out | Network throttling | `ollama pull <model>` directly; resumes. |
+| `ollama serve` says "address in use" | Already running | Skip — already running is the desired state. |
+| Embeddings come back as `[]` | Wrong model name | Confirm `ollama list` shows `nomic-embed-text-v2-moe` exactly. |
+| Brief generation hangs > 10 min on one section | Model loaded slow first time; subsequent calls fast | Wait it out once; future runs reuse the cached model. |
+| Suppression rate hits 100% | Re-grounding too aggressive for your text | Lower thresholds in `src/lib/ground.ts`. |
+| Retrieval recall is 0 | LanceDB index didn't build | Delete `data/matters/demo-enron/` and re-ingest. |
+| Webview shows blank page | Hydration mismatch | Look for `useState` or `Date` in a server component; mark client-side bits with `"use client";`. |
+
+---
+
+## What you'll have at the end of week 1
+
+- A pushed, public GitHub repo with real ingestion working end-to-end.
+- A real generated brief over real Enron documents you can show in your
+  browser.
+- A first eval run with actual recall numbers committed to the repo.
+- A dev journal entry that signals taste and discipline to anyone reading.
+
+That's enough to start having conversations about the project. The Tauri
+wrap, the polished demo video, and the expanded eval set are weeks 2–4 —
+but the technical thesis is validated the moment Phase 5 produces a brief
+you'd recognize as the Enron story.

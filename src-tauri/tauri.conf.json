@@ -1,0 +1,46 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Docket",
+  "version": "0.1.0",
+  "identifier": "com.docket.app",
+  "build": {
+    "beforeDevCommand": "TAURI_BUILD=1 pnpm dev",
+    "devUrl": "http://localhost:3000",
+    "beforeBuildCommand": "TAURI_BUILD=1 pnpm build",
+    "frontendDist": "../out"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Docket",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 720,
+        "minHeight": 540,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: blob:; connect-src ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "category": "Productivity",
+    "shortDescription": "Cited first-read briefs, fully local.",
+    "longDescription": "Docket is a fully-local desktop app for solo and small-firm lawyers. Drag a folder of client documents in, get a cited summary brief out. Nothing leaves the device.",
+    "targets": ["dmg"],
+    "macOS": {
+      "minimumSystemVersion": "13.0",
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null,
+      "entitlements": null
+    },
+    "externalBin": ["binaries/ollama"],
+    "resources": ["resources/*"]
+  },
+  "plugins": {}
+}

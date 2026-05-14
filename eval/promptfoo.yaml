@@ -1,0 +1,31 @@
+# Promptfoo configuration for visual diffing of the Docket pipeline against
+# baseline retrieval configs. Optional — `pnpm eval` is the primary path.
+#
+# Run with:  pnpm dlx promptfoo eval -c eval/promptfoo.yaml
+
+description: Docket retrieval quality regression
+
+prompts:
+  - file://../src/lib/prompts/sections.ts:RECIPES.snapshot.userPrompt
+
+providers:
+  - id: docket
+    label: "Docket — hybrid + rerank + reground"
+    config:
+      pipeline: docket
+  - id: naive
+    label: "Naive RAG"
+    config:
+      pipeline: naive
+  - id: nocontext
+    label: "No retrieval"
+    config:
+      pipeline: nocontext
+
+tests: file://golden-set.jsonl
+
+defaultTest:
+  assert:
+    - type: factuality
+    - type: latency
+      threshold: 30000
