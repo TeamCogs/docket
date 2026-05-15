@@ -2,6 +2,7 @@
   "name": "docket",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "A fully-local desktop app for solo and small-firm lawyers. Folder in, cited brief out. Nothing leaves the device.",
   "scripts": {
     "dev": "next dev",
