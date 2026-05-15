@@ -15,7 +15,7 @@ import { createHash } from "node:crypto";
 import { extract } from "./extract";
 import { chunk } from "./chunk";
 import { embed } from "./ollama";
-import { getChunksTable, openMatter } from "./lancedb";
+import { getChunksTable, openMatter, buildIndexes } from "./lancedb";
 import type { Document, MatterId } from "./types";
 
 const EMBEDDING_DIM = 768;
@@ -99,6 +99,8 @@ export async function ingestFolder(
     }
   }
   onProgress?.({ total: files.length, done: files.length });
+
+  if (totalChunks > 0) await buildIndexes(table);
 
   // Cluster pass — see spec §1.7(B). Default: include all, flag outliers.
   const outlierDocIds = await flagOutliers(documents, allEmbeddings, files.length);

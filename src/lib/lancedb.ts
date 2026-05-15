@@ -15,6 +15,7 @@ import type { Chunk, MatterId } from "./types";
 const DATA_DIR = process.env.DOCKET_DATA_DIR ?? "./data/matters";
 
 interface ChunkRow {
+  [key: string]: unknown;
   chunk_id: string;
   doc_id: string;
   chunk_index: number;
@@ -63,11 +64,15 @@ export async function getChunksTable(
   const table = await conn.createTable(CHUNKS_TABLE, [dummy]);
   // Drop the schema row.
   await table.delete("chunk_id = 'schema'");
-  // Build the HNSW vector index.
-  await table.createIndex("vector", { config: lancedb.Index.hnswSq({ m: 16, efConstruction: 200 }) });
-  // Full-text index for BM25 — hybrid retrieval requires both.
-  await table.createIndex("text", { config: lancedb.Index.fts() });
+  // Indexes are built after data is inserted (see buildIndexes) — LanceDB
+  // cannot train a vector index on an empty table.
   return table;
+}
+
+/** Build vector + FTS indexes after data is loaded. Safe to call on a populated table. */
+export async function buildIndexes(table: lancedb.Table): Promise<void> {
+  await table.createIndex("vector", { config: lancedb.Index.hnswSq({ m: 16, efConstruction: 200 }) });
+  await table.createIndex("text", { config: lancedb.Index.fts() });
 }
 
 export async function insertChunks(
