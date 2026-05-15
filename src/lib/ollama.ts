@@ -27,17 +27,23 @@ export async function complete(opts: {
   jsonMode?: boolean;
   temperature?: number;
 }): Promise<string> {
-  const res = await ollama.generate({
+  // stream: true so Ollama sends HTTP headers immediately when generation
+  // starts, satisfying undici's 30s headersTimeout. With stream: false,
+  // Ollama buffers the full response before sending any headers — on large
+  // prompts with a 32B model that exceeds the timeout every time.
+  const it = await ollama.generate({
     model: opts.model,
     prompt: opts.prompt,
     system: opts.system,
     format: opts.jsonMode ? "json" : undefined,
-    options: {
-      temperature: opts.temperature ?? 0.1,
-    },
-    stream: false,
+    options: { temperature: opts.temperature ?? 0.1 },
+    stream: true,
   });
-  return res.response;
+  let response = "";
+  for await (const chunk of it) {
+    if (chunk.response) response += chunk.response;
+  }
+  return response;
 }
 
 /** Streaming generation. The brief UI consumes this directly. */

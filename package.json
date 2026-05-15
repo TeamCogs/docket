@@ -15,7 +15,8 @@
     "tauri:build": "tauri build",
     "eval": "tsx eval/run.ts",
     "verify:offline": "bash scripts/verify-offline.sh",
-    "models:pull": "bash scripts/pull-models.sh"
+    "models:pull": "bash scripts/pull-models.sh",
+    "reranker": "python -m uvicorn reranker.server:app --host 127.0.0.1 --port 8001"
   },
   "dependencies": {
     "@lancedb/lancedb": "^0.21.0",

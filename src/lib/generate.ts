@@ -83,13 +83,17 @@ async function generateSection(
 ): Promise<BriefSection> {
   const recipe = RECIPES[kind];
 
-  // Multi-query retrieval — union the top results from each query.
+  // Multi-query retrieval — union the top results from each query, then
+  // sort by RRF score so the best chunks aren't crowded out by insertion order.
   const retrievedById = new Map<string, RetrievedChunk>();
-  for (const q of recipe.retrievalQueries) {
+  for (const q of recipe.retrievalQueries(opts.matterName)) {
     const hits = await retrieve(opts.matterId, q);
     for (const h of hits) retrievedById.set(h.chunk.id, h);
   }
-  const chunks = [...retrievedById.values()].slice(0, 8).map((r) => r.chunk);
+  const chunks = [...retrievedById.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, recipe.maxChunks ?? 8)
+    .map((r) => r.chunk);
 
   const passages = formatPassages(chunks);
   const userPrompt = recipe.userPrompt(passages, opts.matterName);
@@ -242,12 +246,20 @@ function parseParties(claims: Claim[]) {
 }
 
 function parseTimeline(claims: Claim[]) {
+  const seen = new Set<string>();
   return claims
     .map((c) => {
       const dateMatch = c.text.match(/^(\d{4}(?:-\d{2}){0,2})/);
       const date = dateMatch?.[1] ?? "";
       const description = c.text.replace(/^\S+:\s*/, "");
       return { id: shortId("evt"), date, description, citation: c.citation };
+    })
+    .filter((evt) => {
+      // Deduplicate: same description text = same event even if model emitted it twice
+      const key = evt.description.slice(0, 80).toLowerCase().replace(/\s+/g, " ").trim();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
     })
     .sort((a, b) => a.date.localeCompare(b.date));
 }
@@ -267,30 +279,30 @@ function parseClaimsItems(claims: Claim[]) {
 function parseRisks(claims: Claim[]) {
   const kinds = ["sol", "missing_signature", "admission", "jurisdiction", "prior_counsel", "contradiction", "other"] as const;
   return claims.map((c) => {
-    const tag = (c.text.match(/^<(\w+)>:/i)?.[1] ?? "other").toLowerCase();
+    const tag = (c.text.match(/^<(\w+)>:/i)?.[1] ?? c.text.match(/^(\w+):/i)?.[1] ?? "other").toLowerCase();
     const kind = (kinds as readonly string[]).includes(tag) ? (tag as (typeof kinds)[number]) : "other";
-    return { kind, text: c.text.replace(/^<[^>]+>:\s*/, ""), citation: c.citation };
+    return { kind, text: c.text.replace(/^<[^>]+>:\s*|^\w+:\s*/, ""), citation: c.citation };
   });
 }
 
 function parseOpenQuestions(claims: Claim[]) {
   const kinds = ["missing_exhibit", "date_ambiguity", "unresolved_contradiction", "outlier_document"] as const;
   return claims.map((c) => {
-    const tag = (c.text.match(/^<(\w+)>:/i)?.[1] ?? "missing_exhibit").toLowerCase();
+    const tag = (c.text.match(/^<(\w+)>:/i)?.[1] ?? c.text.match(/^(\w+):/i)?.[1] ?? "missing_exhibit").toLowerCase();
     const kind = (kinds as readonly string[]).includes(tag)
       ? (tag as (typeof kinds)[number])
       : "missing_exhibit";
-    return { kind, text: c.text.replace(/^<[^>]+>:\s*/, ""), citation: c.citation };
+    return { kind, text: c.text.replace(/^<[^>]+>:\s*|^\w+:\s*/, ""), citation: c.citation };
   });
 }
 
 function parseNextSteps(claims: Claim[]) {
   const kinds = ["request_document", "interview", "calendar_date", "other"] as const;
   return claims.map((c) => {
-    const tag = (c.text.match(/^<(\w+)>:/i)?.[1] ?? "other").toLowerCase();
+    const tag = (c.text.match(/^<(\w+)>:/i)?.[1] ?? c.text.match(/^(\w+):/i)?.[1] ?? "other").toLowerCase();
     const kind = (kinds as readonly string[]).includes(tag)
       ? (tag as (typeof kinds)[number])
       : "other";
-    return { kind, text: c.text.replace(/^<[^>]+>:\s*/, "") };
+    return { kind, text: c.text.replace(/^<[^>]+>:\s*|^\w+:\s*/, "") };
   });
 }

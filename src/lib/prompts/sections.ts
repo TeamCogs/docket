@@ -11,11 +11,13 @@ import type { BriefSectionKind, Chunk } from "../types";
 
 export interface SectionRecipe {
   kind: BriefSectionKind;
-  // The query used to fetch passages for this section. Sometimes literal text,
-  // sometimes a query crafted to bias retrieval toward the right material.
-  retrievalQueries: string[];
-  // The user prompt template. {{passages}} is replaced with the formatted
-  // retrieved passages. {{matter}} is the matter name.
+  // Function of the matter name so the first query anchors to the right
+  // document cluster for any practice area, then subsequent queries cast
+  // a wider semantic net.
+  retrievalQueries: (matter: string) => string[];
+  // Override the default 8-chunk cap. Sections that need to identify many
+  // distinct entities (parties, timeline) benefit from a wider net.
+  maxChunks?: number;
   userPrompt: (passages: string, matter: string) => string;
 }
 
@@ -31,10 +33,10 @@ export function formatPassages(chunks: Chunk[]): string {
 export const RECIPES: Record<BriefSectionKind, SectionRecipe> = {
   snapshot: {
     kind: "snapshot",
-    retrievalQueries: [
-      "case name parties caption complaint",
-      "court venue jurisdiction docket number",
-      "matter type cause of action",
+    retrievalQueries: (matter) => [
+      `${matter} case overview type description`,
+      "complaint petition indictment charges cause of action alleged",
+      "fraud breach injury dispute violation misconduct claim",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 
@@ -56,10 +58,19 @@ Keep the snapshot to ONE item, three to five sentences total. If you cannot infe
 
   parties: {
     kind: "parties",
-    retrievalQueries: [
-      "parties plaintiff defendant",
-      "counsel of record attorney for",
-      "witness deponent testified",
+    maxChunks: 16,
+    // Five queries spanning every practice area:
+    //   [1] matter-anchored anchor for named individuals
+    //   [2] adversarial roles — litigation (civil + criminal) and regulatory
+    //   [3] fiduciary/estate roles — probate, trust, guardianship, conservatorship
+    //   [4] transactional/employment roles — corporate, real estate, IP, labor
+    //   [5] counsel and witnesses — universal
+    retrievalQueries: (matter) => [
+      `${matter} named individual person party principal`,
+      "plaintiff petitioner claimant applicant defendant respondent accused indicted suspect",
+      "trustee executor administrator beneficiary guardian conservator heir devisee settlor",
+      "employer employee officer director partner member landlord tenant licensor licensee inventor assignee",
+      "counsel attorney law firm retained witness expert deponent testified",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 
@@ -81,10 +92,19 @@ One item per party. Use only names that appear in the passages. Do not infer "cl
 
   timeline: {
     kind: "timeline",
-    retrievalQueries: [
-      "date event meeting occurred",
-      "letter sent received correspondence dated",
-      "filed complaint motion order dated",
+    maxChunks: 16,
+    // Five queries spanning every practice area:
+    //   [1] matter-anchored anchor
+    //   [2] litigation filings and court orders — civil, criminal, regulatory
+    //   [3] personal status events — family law, estate, immigration
+    //   [4] employment and corporate events
+    //   [5] financial/transactional events — bankruptcy, securities, real estate
+    retrievalQueries: (matter) => [
+      `${matter} date event occurred`,
+      "filed petition complaint motion order judgment decree entered arrest arraigned sentenced",
+      "death died deceased born married divorced separated custody adopted naturalized",
+      "hired fired terminated resigned appointed promoted incident accident injury hospitalized",
+      "signed executed closed settled restatement bankruptcy default foreclosure evicted",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 
@@ -101,15 +121,17 @@ Extract material events with dates. Output JSON of the form:
   ]
 }
 
-Only include events for which the passages provide a specific date. If a date is partial (year and month only), use YYYY-MM. Sort by date ascending. Do not invent dates.`,
+Only include events for which the passages provide a specific date. If a date is partial (year and month only), use YYYY-MM. Sort by date ascending. Do not invent dates. If multiple passages describe the same event, emit it once.`,
   },
 
   claims: {
     kind: "claims",
-    retrievalQueries: [
-      "cause of action claim count alleges",
-      "defense affirmative defense denies",
-      "statute violation breach",
+    // Four queries covering the full spectrum of claim types across practice areas
+    retrievalQueries: (matter) => [
+      `${matter} claim cause of action count alleged`,
+      "fraud breach negligence discrimination harassment wrongful retaliation infringement defamation",
+      "malpractice personal injury products liability nuisance trespass conversion unjust enrichment",
+      "affirmative defense counterclaim motion dismiss denies disputed statute regulation violated",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 
@@ -131,10 +153,11 @@ Identify claims, causes of action, and defenses surfaced in the passages. Output
 
   key_facts: {
     kind: "key_facts",
-    retrievalQueries: [
-      "admitted acknowledged confirmed",
-      "stated testified declared",
-      "key fact material",
+    retrievalQueries: (matter) => [
+      `${matter} key fact admission finding`,
+      "admitted acknowledged knew aware authorized approved confirmed signed",
+      "testified stated declared sworn record evidence exhibit produced",
+      "report investigation audit concluded determined findings revealed",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 
@@ -156,11 +179,18 @@ Limit to 8 items. Order by importance to a first-read.`,
 
   risks: {
     kind: "risks",
-    retrievalQueries: [
-      "statute of limitations deadline expired",
-      "missing signature unsigned",
-      "contradiction inconsistent inconsistency",
-      "adverse fact damaging unfavorable",
+    // Five queries covering risk categories across all practice areas:
+    //   [1] matter-anchored
+    //   [2] public-vs-internal contradictions — securities, corporate governance, employment
+    //   [3] concealment and conflicts — corporate fraud, estate self-dealing, divorce hidden assets
+    //   [4] capacity, coercion, and consent — estate (undue influence), family, contract
+    //   [5] procedural and documentary — universal
+    retrievalQueries: (matter) => [
+      `${matter} risk red flag adverse contradiction`,
+      "public statement press release announcement versus internal record memo board minutes",
+      "undisclosed withheld concealed hidden conflict self-dealing related party asset transfer",
+      "undue influence incapacity incompetence duress coercion misrepresentation lack consent",
+      "statute limitations deadline expired lapsed unsigned missing signature gap omission",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 
@@ -177,15 +207,16 @@ Identify risks, red flags, adverse facts, and contradictions. Output JSON:
   ]
 }
 
-Begin each item with the risk kind tag in angle brackets. Only flag risks supported by the passages. Do not speculate about strategy.`,
+Begin each item with the risk kind tag wrapped in angle brackets, e.g. <contradiction>: description. Only flag risks supported by the passages. Do not speculate about strategy.`,
   },
 
   open_questions: {
     kind: "open_questions",
-    retrievalQueries: [
-      "exhibit attached enclosed missing",
-      "see attached referenced",
-      "unclear unknown to be determined",
+    retrievalQueries: (matter) => [
+      `${matter} missing gap unknown unresolved`,
+      "exhibit referenced not produced attached enclosed see document missing",
+      "date uncertain unclear approximately unknown ambiguous period",
+      "unresolved pending outstanding open issue contradiction inconsistency gap",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 
@@ -202,15 +233,16 @@ List information gaps: documents referenced but missing, ambiguous dates, unreso
   ]
 }
 
-Begin each item with the kind tag. If the gap is a missing document, chunk_refs may be empty.`,
+Begin each item with the kind tag wrapped in angle brackets, e.g. <missing_exhibit>: description. If the gap is a missing document, chunk_refs may be empty.`,
   },
 
   next_steps: {
     kind: "next_steps",
-    retrievalQueries: [
-      "next step request investigate",
-      "interview witness deposition needed",
-      "deadline calendar date",
+    retrievalQueries: (matter) => [
+      `${matter} next step action needed follow up`,
+      "document request subpoena obtain acquire production order",
+      "interview depose witness examine testimony expert retain",
+      "deadline filing date calendar court upcoming schedule",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 

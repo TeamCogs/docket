@@ -1,0 +1,1174 @@
+-----BEGIN PRIVACY-ENHANCED MESSAGE-----
+Proc-Type: 2001,MIC-CLEAR
+Originator-Name: webmaster@www.sec.gov
+Originator-Key-Asymmetric:
+ MFgwCgYEVQgBAQICAf8DSgAwRwJAW2sNKK9AVtBzYZmr6aGjlWyK3XmZv3dTINen
+ TWSM7vrzLADbmYQaionwg5sDW3P6oaM5D3tdezXMm7z1T+B+twIDAQAB
+MIC-Info: RSA-MD5,RSA,
+ OT4moGv3W6WaIPZ/DIGVwIPoTMaSKr4j5Rzsk9nZSBs0BQV8RaBB355fYqQQ7OHu
+ OggzqjQQcPaUq6o861SPzw==
+
+<SEC-DOCUMENT>0000950129-01-503835.txt : 20020410
+<SEC-HEADER>0000950129-01-503835.hdr.sgml : 20020410
+ACCESSION NUMBER:		0000950129-01-503835
+CONFORMED SUBMISSION TYPE:	8-K
+PUBLIC DOCUMENT COUNT:		2
+CONFORMED PERIOD OF REPORT:	20011108
+ITEM INFORMATION:		Other events
+ITEM INFORMATION:		Financial statements and exhibits
+FILED AS OF DATE:		20011108
+
+FILER:
+
+	COMPANY DATA:	
+		COMPANY CONFORMED NAME:			ENRON CORP/OR/
+		CENTRAL INDEX KEY:			0001024401
+		STANDARD INDUSTRIAL CLASSIFICATION:	SECURITY BROKERS, DEALERS & FLOTATION COMPANIES [6211]
+		IRS NUMBER:				470255140
+		STATE OF INCORPORATION:			OR
+		FISCAL YEAR END:			1231
+
+	FILING VALUES:
+		FORM TYPE:		8-K
+		SEC ACT:		1934 Act
+		SEC FILE NUMBER:	001-13159
+		FILM NUMBER:		1777779
+
+	BUSINESS ADDRESS:	
+		STREET 1:		1400 SMITH ST
+		CITY:			HOUSTON
+		STATE:			TX
+		ZIP:			77002-7369
+		BUSINESS PHONE:		7138536161
+
+	MAIL ADDRESS:	
+		STREET 1:		1400 SMITH ST
+		CITY:			HOUSTON
+		STATE:			TX
+		ZIP:			77002-7369
+
+	FORMER COMPANY:	
+		FORMER CONFORMED NAME:	ENRON OREGON CORP
+		DATE OF NAME CHANGE:	19961008
+</SEC-HEADER>
+<DOCUMENT>
+<TYPE>8-K
+<SEQUENCE>1
+<FILENAME>h91831e8-k.txt
+<DESCRIPTION>ENRON CORP. - NOVEMBER 8, 2001
+<TEXT>
+<PAGE>
+                     UNITED STATES SECURITIES AND EXCHANGE
+                                   COMMISSION
+                             WASHINGTON, D.C. 20549
+
+                                    FORM 8-K
+
+                                 CURRENT REPORT
+
+
+                        Pursuant to Section 13 or 15(d)
+                     of the Securities Exchange Act of 1934
+
+                        Date of Report: November 8, 2001
+
+
+                         Commission File Number 1-13159
+
+                                  ENRON CORP.
+             (Exact name of registrant as specified in its charter)
+
+
+           Oregon                                     47-0255140
+- -------------------------------            -------------------------------
+(State or other jurisdiction of            (I.R.S. Employer Identification
+incorporation or organization)                      Number)
+
+
+        Enron Building
+      1400 Smith Street
+       Houston, Texas                                  77002
+- -------------------------------            -------------------------------
+(Address of principal executive                     (Zip Code)
+         Offices)
+
+                                 (713) 853-6161
+              ----------------------------------------------------
+              (Registrant's telephone number, including area code)
+
+
+<PAGE>
+
+                                  ENRON CORP.
+
+Item 5.  Other Events.
+
+Enron Corp. (NYSE: ENE) is providing information to investors concerning several
+important matters:
+
+         o     A required restatement of prior period financial statements to
+               reflect: (1) recording the previously announced $1.2 billion
+               reduction to shareholders' equity reported by Enron in the third
+               quarter of 2001; and (2) various income statement and balance
+               sheet adjustments required as the result of a determination by
+               Enron and its auditors (which resulted from information made
+               available from further review of certain related-party
+               transactions) that three unconsolidated entities should have been
+               consolidated in the financial statements pursuant to generally
+               accepted accounting principles. The restatement is outlined in
+               TABLE 1;
+
+         o     Enron intends to restate its financial statements for the years
+               ended December 31, 1997 through 2000 and the quarters ended March
+               31 and June 30, 2001. As a result, the previously-issued
+               financial statements for these periods and the audit reports
+               covering the year-end financial statements for 1997 to 2000
+               should not be relied upon;
+
+         o     The accounting basis for the $1.2 billion reduction to
+               shareholders' equity mentioned above;
+
+         o     The Special Committee appointed by Enron's Board of Directors to
+               review transactions between Enron and related parties;
+
+
+
+
+
+<PAGE>
+
+
+                                      -2-
+
+         o     Information regarding the LJM1 and LJM2 limited partnerships
+               formed by Enron's then Chief Financial Officer, the former CFO's
+               role in the partnerships, the business relationships and
+               transactions between Enron and the partnerships, and the economic
+               results of those transactions as known thus far to Enron, which
+               are outlined in TABLE 2; and
+
+         o     Transactions between Enron and other Enron employees.
+
+The restatements discussed below affect prior periods. After taking into account
+Enron's previously disclosed $1.2 billion adjustment to shareholders' equity in
+the third quarter of 2001, these restatements have no effect on Enron's current
+financial position.
+
+As used herein, "Enron" means Enron Corp. or one or more of its subsidiaries or
+affiliates. The dollar amounts and percentages set forth herein are rounded
+amounts and percentages.
+
+ ...............
+
+1. Background on Special Purpose Entities and Related-Party Transactions
+
+Enron, like many other companies, utilizes a variety of structured financings in
+the ordinary course of its business to access capital or hedge risk. Many of
+these transactions involve "special purpose entities," or "SPEs." Accounting
+guidelines allow for the non-consolidation of SPEs from the sponsoring company's
+financial statements in certain circumstances. Accordingly, certain transactions
+
+
+
+
+
+
+
+<PAGE>
+
+
+                                      -3-
+
+between the sponsoring company and the SPE may result in gain or loss and/or
+cash flow being recognized by the sponsor, commonly referred to by financial
+institutions as "monetizations."
+
+LJM Cayman, L.P. ("LJM1") and LJM2 Co-Investment, L.P. ("LJM2") (collectively
+"LJM") are private investment limited partnerships that were formed in 1999.
+Andrew S. Fastow, then Executive Vice President and Chief Financial Officer of
+Enron, was (from inception through July 2001) the managing member of the general
+partners of LJM1 and LJM2. Enron believes that the LJM partnerships have as
+limited partners a significant number of institutions and other investors that
+are not related parties to Enron. These partnerships are a subject of the
+Special Committee's investigation and it is possible that the Committee's review
+will identify additional or different information concerning matters described
+herein.
+
+2. Restatement of Prior Period Financial Statements
+
+Enron will restate its financial statements from 1997 to 2000 and the first and
+second quarters of 2001 to: (1) reflect its conclusion that three entities did
+not meet certain accounting requirements and should have been consolidated, (2)
+reflect the adjustment to shareholders' equity described below, and (3) include
+prior-year proposed audit adjustments and reclassifications (which were
+previously determined to be immaterial in the year originally proposed).
+Specifically, Enron has concluded that based on current information:
+
+
+<PAGE>
+
+                                      -4-
+
+         o     The financial activities of Chewco Investments, L.P. ("Chewco"),
+               a related party which was an investor in Joint Energy Development
+               Investments Limited Partnership ("JEDI"), should have been
+               consolidated beginning in November 1997;
+
+         o     The financial activities of JEDI, in which Enron was an investor
+               and which was consolidated into Enron's financial statements
+               during the first quarter of 2001, should have been consolidated
+               beginning in November 1997; and
+
+         o     The financial activities of a wholly-owned subsidiary of LJM1,
+               which engaged in derivative transactions with Enron to permit
+               Enron to hedge market risks of an equity investment in Rhythms
+               NetConnections, Inc., should have been consolidated into Enron's
+               financial statements beginning in 1999.
+
+The effects of the restatements are outlined in Table 1. A description of the
+restatements follows the table.
+
+                                    TABLE 1
+
+                                  ENRON CORP.
+                                  RESTATEMENTS
+                 DOLLARS IN MILLIONS, EXCEPT PER SHARE AMOUNTS
+                                   UNAUDITED
+
+<TABLE>
+<CAPTION>
+                                                                              1ST QTR   2ND QTR    3RD QTR
+                                         1997     1998      1999      2000      2001      2001      2001
+                                        ------------------------------------------------------------------
+<S>                                     <C>       <C>       <C>       <C>       <C>       <C>       <C>
+Net income as reported                  $  105(a) $  703    $  893    $  979    $  425    $  404    $ (618)
+Restatements:
+    Consolidation of JEDI and Chewco       (45)     (107)     (153)      (91)     --        --        --
+    Consolidation of LJM1 subsidiary      --        --         (95)       (8)     --        --        --
+    Raptor equity adjustment              --        --        --        --        --        --        --
+    Prior year proposed audit
+      adjustments and reclassifications    (51)       (6)       (2)      (33)       17         5       (17)
+                                        ------------------------------------------------------------------
+NET INCOME RESTATED                          9       590       643       847       442       409      (635)
+                                        ------------------------------------------------------------------
+
+
+Diluted EPS as reported                   0.16      1.01      1.10      1.12      0.49      0.45     (0.84)
+DILUTED EPS RESTATED                     (0.01)     0.86      0.79      0.97      0.51      0.46     (0.86)
+                                        ------------------------------------------------------------------
+
+Recurring net income as reported           515       698       957     1,266       406       404       393
+Restatements:
+    Consolidation of JEDI and Chewco       (45)     (107)     (153)      (91)     --        --        --
+    Consolidation of LJM1 subsidiary      --        --         (95)       (8)     --        --        --
+    Raptor equity adjustment              --        --        --        --        --        --        --
+    Prior year proposed audit
+      adjustments and reclassifications    (51)       (6)       (2)      (33)       17         5       (17)
+                                        ------------------------------------------------------------------
+RECURRING NET INCOME RESTATED              419       585       707     1,134       423       409       376
+                                        ------------------------------------------------------------------
+
+
+Diluted recurring EPS as reported         0.87      1.00      1.18      1.47      0.47      0.45      0.43
+DILUTED RECURRING EPS RESTATED            0.71      0.85      0.87      1.33      0.49      0.46      0.41
+                                        ------------------------------------------------------------------
+
+Total assets as reported                22,552    29,350    33,381    65,503    67,260    63,392
+Restatements:
+    Consolidation of JEDI and Chewco       447       160       187      (192)     --        --
+    Consolidation of LJM1 subsidiary      --        --        (222)     --        --        --
+    Raptor equity adjustment              --        --        --        (172)   (1,000)   (1,000)
+    Prior year proposed audit
+      adjustments and reclassifications    (79)      (87)     (147)     (364)   (1,249)      247
+                                        ------------------------------------------------------------------
+TOTAL ASSETS RESTATED                   22,920    29,423    33,199    64,775    65,011    62,639    61,177(b)
+                                        ------------------------------------------------------------------
+
+Debt as reported                         6,254     7,357     8,152    10,229    11,922    12,812
+Restatements:
+    Consolidation of JEDI and Chewco       711       561       685       628      --        --
+    Consolidation of LJM1 Subsidiary     --        --        --        --         --        --
+    Raptor equity adjustment             --        --        --        --         --        --
+    Prior year proposed audit
+      adjustments and reclassifications  --        --        --        --         --        --
+                                        ------------------------------------------------------------------
+DEBT RESTATED                            6,965     7,918     8,837    10,857    11,922    12,812    12,978(b)
+                                        ------------------------------------------------------------------
+
+Equity as reported                       5,618     7,048     9,570    11,470    11,727    11,740
+Restatements:
+    Consolidation of JEDI and Chewco      (262)     (391)     (540)     (810)     --        --
+    Consolidation of LJM1 subsidiary      --        --        (166)       60        60        60
+    Raptor equity adjustment              --        --        --        (172)   (1,000)   (1,000)
+    Prior year proposed audit
+      adjustments and reclassifications    (51)      (57)     (128)     (242)     (286)       11
+                                        ------------------------------------------------------------------
+EQUITY RESTATED                          5,305     6,600     8,736    10,306    10,501    10,811     9,491(b)
+                                        ------------------------------------------------------------------
+</TABLE>
+- ------------
+(a) After effect of significant contract restructuring charge totaling
+    $463 million (after tax)
+
+(b) Represents estimated balances pending completion of September 30, 2001
+    financial statements
+
+A.       Restatement Number 1
+
+Enron's decision that Chewco should be consolidated beginning in November 1997
+is based on current information that Chewco did not meet the accounting criteria
+to qualify as an unconsolidated SPE. As a result of Chewco's failure to meet the
+criteria, JEDI, in which Chewco was a limited partner, also did not qualify
+for nonconsolidation treatment. Because of
+
+
+
+
+
+<PAGE>
+                                      -5-
+
+those consolidations, Enron's prior-year reported debt amounts will be increased
+by both JEDI's and Chewco's borrowings. The net effect will reduce Enron's
+prior-years' reported net income and shareholders' equity amounts. In addition,
+Enron's net income is reduced for specific JEDI revenues previously allocated to
+Chewco, relating to the appreciation in value of Enron stock, which eliminate
+upon consolidation. This, in effect, reduces Enron's share of JEDI's earnings.
+
+B. Restatement Number 2
+
+Enron's decision that the LJM1 subsidiary should be consolidated in 1999 and
+2000 is based on Enron's current assessment that the subsidiary did not qualify
+for nonconsolidation treatment because of inadequate capitalization.
+Accordingly, Enron now believes that the hedging transactions in which Enron
+engaged with the LJM1 subsidiary (related to Enron's investment in the stock of
+Rhythms NetConnections, Inc.) should have been consolidated into Enron's
+financial statements for 1999 and 2000. This consolidation has the effect of
+reducing Enron's net income in 1999 and 2000 and shareholders' equity in 1999
+and increasing shareholders' equity in 2000, thus eliminating the income
+recognized by Enron on these derivative transactions.
+
+C. Restatement Number 3
+
+As discussed in Section 3 below, concerning Enron's recent disclosure of a $1.2
+billion reduction to shareholders' equity in the third quarter of 2001,
+shareholders' equity will be reduced by $172 million beginning as of June 30,
+2000, and by an additional $828 million beginning as of March 31, 2001, to
+properly record notes receivable (described in Section 3 below) as a reduction
+to equity.
+
+
+
+<PAGE>
+
+
+                                      -6-
+
+D. Restatement Number 4
+
+The restatements will also include prior-year proposed audit adjustments and
+reclassifications which were determined to be immaterial in the year originally
+proposed.
+
+3. Accounting Basis for $1.2 Billion Reduction in Shareholders' Equity
+
+Enron's previously-announced $1.2 billion reduction of shareholders' equity
+primarily involves the correction of the effect of an accounting error made in
+the second quarter of 2000 and in the first quarter of 2001. As described in
+more detail below, four SPEs known as Raptor I-IV (collectively, "Raptor") were
+created in 2000, permitting Enron to hedge market risk in certain of its
+investments. (LJM2 invested in these entities, but the related-party nature of
+the transaction is not relevant to the accounting correction). As part of the
+capitalization of these entities, Enron issued common stock in exchange for a
+note receivable. Enron increased notes receivable and shareholders' equity to
+reflect this transaction. Enron now believes that, under generally accepted
+accounting principles, the note receivable should have been presented as a
+reduction to shareholders' equity (similar to a shareholder loan). This
+treatment would have resulted in no net change to shareholders' equity. The net
+effect of this initial accounting entry was to overstate both notes receivable
+and shareholders' equity by approximately $172 million (which represented less
+than 2% of shareholders' equity at the time) in each of the second quarter,
+third quarter, and year-end financial statements of Enron for the year 2000.
+
+In the first quarter of 2001, Enron entered into contracts with Raptor that
+could have obligated Enron to issue Enron common stock in the future in exchange
+for notes receivable. Enron
+
+
+<PAGE>
+
+                                      -7-
+
+
+accounted for these transactions using the accounting treatment described in the
+preceding paragraph. This resulted in an additional overstatement of both notes
+receivable and shareholders' equity by $828 million. As a result of these
+errors, shareholders' equity and notes receivable were overstated by a total of
+$1 billion in the unaudited financial statements of Enron at March 31 and June
+30, 2001.
+
+In the third quarter of 2001, Enron purchased LJM2's equity interests in Raptor
+for $35 million. As previously discussed, Enron accounted for this transaction
+as a reduction to Enron shareholders' equity and notes receivable by $1.2
+billion. Enron recorded a $200 million equity reduction (which was part of the
+$1.2 billion reduction) related to the excess of the fair value of contracts
+deliverable by Enron over the notes receivable recorded in shareholders' equity,
+as adjusted.
+
+Prior period financials will be restated to adjust shareholders' equity for all
+periods affected as shown in Section 2.
+
+4. The Special Committee
+
+Based on various reports and information concerning Enron's transactions with
+certain related parties, on October 31, 2001, the Board of Directors elected
+William Powers, Dean of the University of Texas School of Law, to the Board, and
+appointed Dean Powers as Chairman of a newly formed Special Committee of the
+Board to conduct an independent investigation and review of transactions between
+Enron and certain related parties. The Special Committee also was charged with
+taking any disciplinary action that it deems appropriate, communicating with
+
+<PAGE>
+
+
+
+                                      -8-
+
+
+the Securities and Exchange Commission (which has commenced a formal
+investigation of these matters), and recommending to the Board any other
+appropriate actions. The other members of the Special Committee are independent
+directors Frank Savage, CEO of Savage Holdings LLC, Paulo Ferraz Pereira,
+Executive Vice President of investment bank Group Bozano, and Herbert S.
+Winokur, Jr., Chairman and CEO of Capricorn Holdings, Inc.
+
+The Special Committee has retained the law firm of Wilmer, Cutler & Pickering as
+its counsel. The firm's representation is led by William R. McLucas, former head
+of the Division of Enforcement of the SEC. Wilmer, Cutler has retained Deloitte
+& Touche to provide related accounting advice to the law firm. The Special
+Committee's review is in its early stages. It will include an analysis of both
+the underlying substance and business purposes of the transactions, as well as
+an analysis of their financial impact on Enron and, to the extent information is
+available, on the related parties. The duration of the Special Committee's
+review, and the ultimate results of that review, have not yet been determined.
+While the information provided herein reflects Enron's current understanding of
+the relevant facts, it is possible that the Special Committee's review will
+identify additional or different information concerning these matters.
+
+5. The LJM Limited Partnerships and Transactions with Enron
+
+A. The LJM Partnerships.
+
+As discussed above, LJM1 and LJM2 are private investment limited partnerships.
+Enron believes that, under the LJM1 and LJM2 limited partnership agreements (as
+with many similar agreements in private equity investing), the general partners
+are entitled to receive a percentage of the profits in excess of their portions
+of total capital contributed to the partnerships depending
+
+
+
+<PAGE>
+
+
+                                      -9-
+
+upon the performance of the partnerships' investments. Enron also believes that
+the general partners are entitled to receive annual management fees based in
+part on formulas that take into account the total amount of capital committed
+and/or invested by the limited partners. Enron now believes that Mr. Fastow
+received in excess of $30 million relating to his LJM management and investment
+activities. Enron believes that the initial capital commitments to LJM1 were $16
+million, and the aggregate capital commitments to LJM2 were $394 million.
+
+LJM1 and LJM2 were described to the Enron Board of Directors as potential
+sources of capital to buy assets from Enron, potential equity partners for Enron
+investments, and counterparties to help mitigate risks associated with Enron
+investments. The Board also was informed that LJM1 and LJM2 intended to transact
+business with third parties. Prior to approving Mr. Fastow's affiliation with
+LJM1 and LJM2, the Board determined that Mr. Fastow's participation in the
+partnerships would not adversely affect the interests of Enron. The Board
+approved the initial transaction with LJM1 and recognized that Enron may (but
+was not required to) engage in additional transactions with LJM1.
+
+The Board directed that certain controls be put into place relating to Mr.
+Fastow's involvement with the partnerships and transactions between Enron and
+the partnerships. The Board required review and approval of each transaction by
+the Office of the Chairman, the Chief Accounting Officer and the Chief Risk
+Officer. The Board also recognized the ability of the Chairman of the Board to
+require Mr. Fastow to resign from the partnerships at any time, and directed
+that the Audit and Compliance Committee conduct annual reviews of transactions
+between Enron and
+
+
+
+
+<PAGE>
+
+                                      -10-
+
+LJM1 and LJM2 completed during the prior year. Whether these controls and
+procedures were properly implemented is a subject of the Special Committee's
+investigation.
+
+Enron believes that, as of July 31, 2001, Mr. Fastow sold his interests in LJM1
+and LJM2 to Michael J. Kopper, and that Mr. Fastow ceased to be the managing
+member of their general partners. Prior to that time, Mr. Kopper reported to Mr.
+Fastow as a non-executive officer of an Enron division. Enron believes Mr.
+Kopper resigned from Enron immediately before purchasing Mr. Fastow's interests
+in LJM2. Mr. Fastow is no longer working for Enron.
+
+B. General Summary of LJM Transactions.
+
+From June 1999 through September 2001, Enron and Enron-related entities entered
+into 24 business relationships in which LJM1 or LJM2 participated. These
+relationships were of several general types, including: (1) sales of assets by
+Enron to LJM2 and by LJM2 to Enron; (2) purchases of debt or equity interests by
+LJM1 or LJM2 in Enron-sponsored SPEs; (3) purchases of debt or equity interests
+by LJM1 or LJM2 in Enron affiliates or other entities in which Enron was an
+investor; (4) purchases of equity investments by LJM1 or LJM2 in SPEs designed
+to mitigate market risk in Enron's investments; (5) the sale of a call option
+and a put option by LJM2 on physical assets; and (6) a subordinated loan to LJM2
+from an Enron affiliate. The financial results of these transactions are
+summarized in Table 2 below.
+
+
+<PAGE>
+                                      -11-
+
+                                    TABLE 2
+
+                     UNAUDITED SUMMARY OF LJM TRANSACTIONS
+                                 (IN MILLIONS)
+
+<Table>
+<Caption>
+                                                                                      IMPACT OF LJM
+                                                          CASH AND                     TRANSACTIONS
+                                             LJM        OTHER VALUE      LJM NET        ON ENRON'S
+                                          INVESTMENT  RECEIVED BY LJM   CASH FLOW    PRE-TAX EARNINGS
+                                          ------------------------------------------------------------
+<S>                                        <C>           <C>              <C>           <C>
+2001:
+
+Sale of Assets                              $   --        $    --        $    --        $    0.7
+
+Purchases of Equity/Debt in
+  Enron-Sponsored Special Purpose
+  Entities                                      --           52.5           52.5              --
+
+Investments in Enron Affiliates                3.4           49.7           46.3              --
+
+Portfolio Special Purpose Entities              --           75.5           75.5          (166.2)(a)
+
+Call Option                                     --             --             --              --
+
+Transactions with LJM and Other Entities        --             --             --              --
+
+Transaction with LJM and Whitewing              --             --             --              --
+                                          ------------------------------------------------------------
+           Total                           $   3.4        $ 177.7        $ 174.3         $(165.5)
+                                          ============================================================
+
+2000:
+
+Sale of Assets                             $  30.0(b)     $  32.4        $   2.4         $  86.6
+
+Purchases of Equity/Debt in
+  Enron-Sponsored Special Purpose
+  Entities                                   100.7           64.4          (36.3)             --
+
+Investments in Enron Affiliates               66.5           19.3          (47.2)             --
+
+Portfolio Special Purpose Entities           127.1          148.5           21.4           517.9(a,c)
+
+Call Option                                   11.3           12.5            1.2              --
+
+Transactions with LJM and Other Entities       7.5           11.7            4.2              --
+
+Transaction with LJM and Whitewing            40.3             --          (40.3)             --
+                                          ------------------------------------------------------------
+           Total                           $ 383.4        $ 288.8        $ (94.6)        $ 604.5
+                                          ============================================================
+
+1999:
+
+Sale of Assets                              $   --        $    --        $    --        $     --
+
+Purchases of Equity/Debt in
+  Enron-Sponsored Special Purpose
+  Entities                                    73.8           15.4          (58.4)            2.4
+
+Investments in Enron Affiliates               44.5            1.0          (43.5)           16.9
+
+Portfolio Special Purpose Entities            64.0           95.2(d)        31.2           119.5(c)
+
+Call Option                                     --             --             --              --
+
+Transactions with LJM and Other Entities        --             --             --              --
+
+Transaction with LJM and Whitewing              --           38.5           38.5              --
+                                          ------------------------------------------------------------
+           Total                           $ 182.3        $ 150.1        $ (32.2)        $ 138.8
+                                          ============================================================
+
+Summary Totals:
+
+Sale of Assets                              $ 30.0        $  32.4        $   2.4        $   87.3
+
+Purchases of Equity/Debt in
+  Enron-Sponsored Special Purpose
+  Entities                                   174.5          132.3          (42.2)            2.4
+
+Investments in Enron Affiliates              114.4           70.0          (44.4)           16.9
+
+Portfolio Special Purpose Entities           191.1          319.2          128.1           471.2
+
+Call Option                                   11.3           12.5            1.2              --
+
+Transactions with LJM and Other Entities       7.5           11.7            4.2              --
+
+Transaction with LJM and Whitewing            40.3           38.5           (1.8)             --
+                                          -----------------------------------------------------------
+           Total                           $ 569.1        $ 616.6        $  47.5         $ 577.8
+                                          ===========================================================
+
+                                                                       ---------
+Estimated Fair Value of Existing
+LJM Investments                                                          $  43.6(e)
+                                                                       =========
+</Table>
+
+    (a)  The pre-tax earnings impact of transactions with LJM2 through the
+         Raptor SPEs was approximately $532 million in 2000 and $545 million
+         for the nine months ended September 30, 2001. During 2000 and the
+         nine months ended September 30, 2001, the Raptor SPEs hedged losses
+         related to Enron investments of $501 million and $453 million
+         respectively. The 2001 pre-tax earnings amount includes a $711 million
+         pre-tax charge in the quarter ended September 30, 2001 related to
+         the termination of the Raptor SPEs.
+
+    (b)  This amount excludes a seller financed note from Enron to LJM
+         of approximately $70 million.
+
+    (c)  These pre-tax earnings resulted from a transaction with an LJM1
+         affiliate related to Enron's equity investment in Rhythms
+         Netconnections, Inc. As previously stated, Enron now believes, based on
+         current information, that the financial activities of the LJM1
+         affiliate should have been consolidated into its financial statements
+         in 1999 and 2000 and will be restating prior years' financial
+         statements to reflect this change. The pre-tax earnings / (loss) impact
+         of this transaction was approximately $119.5 million and ($14.1)
+         million in 1999 and 2000 respectively.
+
+    (d)  This amount represents Enron's estimate of the value received in
+         Enron common stock, a portion of which was restricted. The estimate was
+         based on a 36% discount off of the screen price on the date of issuance
+         for shares that were restricted and estimated proceeds received by LJM
+         from the sale of the unrestricted shares.
+
+    (e)  This amount represents Enron's estimated fair value of the six
+         investments made by LJM that remain outstanding.
+
+C. Sale of Assets.
+
+In June 2000, LJM2 purchased dark fiber optic cable from Enron for a purchase
+price of $100 million. LJM2 paid Enron $30 million in cash and the balance in an
+interest-bearing note for $70 million. Enron recognized $67 million in pre-tax
+earnings in 2000 related to the asset sale. Pursuant to a marketing agreement
+with LJM2, Enron was compensated for marketing the fiber to others and providing
+operation and maintenance services to LJM2 with respect to the fiber. LJM2 sold
+a portion of the fiber to industry participants for $40 million, which resulted
+in Enron recognizing agency fee revenue of $20.3 million. LJM2 sold the
+remaining dark fiber for $113 million in December 2000 to an SPE that was formed
+to acquire the fiber. In December 2000, LJM2 used a portion of the proceeds to
+pay in full the note and accrued interest owed to Enron. At the time of LJM2's
+sale of the fiber to the SPE, Enron entered into a derivative contract which
+served as credit support for the benefit of some of the debt holders of a
+third-party investor in the SPE. This credit support provided the lender with a
+specified rate of return. As a result, Enron's credit exposure under the $70
+million note was replaced with $61 million in remaining exposure under the
+derivative contract. LJM2 earned $2.4 million on its resale of the fiber.
+
+D. Purchases of Equity/Debt in Enron-Sponsored SPEs.
+
+Between September 1999 and December 2000, LJM1 or LJM2 purchased equity or debt
+interests in nine Enron-sponsored SPEs. LJM1 and LJM2 invested $175 million in
+the nine SPEs. These transactions enabled Enron to monetize assets and generated
+pre-tax earnings to Enron of $2 million in 1999.
+<PAGE>
+
+                                      -12-
+
+Enron believes that LJM received cash of $15 million, $64 million and $53
+million in 1999, 2000 and 2001, respectively, relating to its investments in
+these entities. In three instances, third-party financial institutions also
+invested in the entities. LJM invested on the same terms as the third-party
+investors. In one of these nine transactions, Enron entered into a marketing
+agreement with LJM2 that provided Enron with the right to market the underlying
+equity. This arrangement gave Enron profit potential in proceeds received after
+LJM2 achieved a specified return level. In six of these nine transactions, Enron
+repurchased all or a portion of the equity and debt initially purchased by LJM.
+
+The SPEs owned, directly or indirectly, a variety of operating and financial
+assets. For example, Yosemite Securities Trust was a finance entity which
+facilitated Enron's ability to raise funds in the capital markets through the
+use of credit-linked notes, a standard financing arrangement offered by
+investment banks. Osprey Trust is beneficially-owned by a number of financial
+institutions and is a limited partner in Whitewing Associates, L.P., an Enron
+unconsolidated affiliate ("Whitewing"). Enron is the other partner. Whitewing
+purchased certain Enron investments for future sale.
+
+In addition, as a result of these transactions, Enron was able to monetize
+equity interests with investment banks. These monetizations resulted in Enron's
+recognizing $146 million and $5 million in pre-tax earnings in 2000 and 2001,
+respectively, and $252 million in cash inflows, all in 2000.
+
+
+<PAGE>
+
+                                      -13-
+
+E. Investment in Enron Affiliates.
+
+In two transactions, LJM2 made direct and indirect investments in stock (and
+warrants convertible into stock) of New Power Holdings, Inc. ("NPW"). NPW
+initially was a wholly-owned subsidiary of Enron, subsequently included other
+strategic and financial investors, and in October 2000 became a public company.
+NPW is engaged in the retail marketing and retail sale of natural gas,
+electricity and other commodities, products and services to residential and
+small commercial customers in the United States. In January 2000, LJM2 invested
+$673,000 in Cortez Energy Services LLC ("Cortez"), a limited liability company
+formed by Enron and LJM2, and Enron contributed five million shares of NPW stock
+to Cortez. In July 2000, in a private placement, LJM2 purchased warrants
+exercisable for NPW stock for $50 million on the same terms as third-party
+investors. Enron believes that LJM2 still owns these investments.
+
+In September 1999, LJM1 acquired from Enron a 13% equity interest in a company
+owning a power project in Brazil for $10.8 million, and acquired redeemable
+preference shares in a related company for $500,000. Enron recognized a $1.7
+million loss on the sale of these interests to LJM1. Enron recognized revenues
+of $65 million, $14 million and $5 million from a commodity contract with the
+company owning the power project in 1999, 2000 and 2001, respectively. As part
+of an exclusive marketing arrangement to sell LJM1's equity in the project to
+third-parties and to limit LJM1's return, Enron paid LJM1 a $240,000 fee in May
+2000. In 2001, Enron repurchased LJM1's 13% equity interest and the redeemable
+preference shares for $14.4 million. Enron currently owns this equity interest.
+
+In December 1999, LJM2 paid Enron $30 million for a 75% equity interest in a
+power project in Poland. Enron recognized a $16 million gain in 1999 on the
+sale. Enron paid $750,000 to LJM2
+
+
+
+
+<PAGE>
+                                      -14-
+
+as an equity placement fee. In March 2000, Enron repurchased 25% of the equity
+in the Polish power project from LJM2 for $10.6 million, and Whitewing acquired
+the remaining 50% from LJM2 for $21.3 million. Enron and Whitewing still own
+their respective equity interests.
+
+In December 1999, LJM2 acquired a 90% equity interest in an Enron entity with
+ownership rights to certain natural gas reserves for $3 million. As a result,
+Enron recognized $3 million in revenue from an existing commodity contract.
+Subsequently, LJM2 assigned a portion of its ownership interest in the entity to
+Enron and Whitewing at no cost (to achieve certain after-tax benefits). Enron
+believes LJM2 continues to own its remaining interest.
+
+F.  Portfolio SPEs.
+
+Enron and LJM established a series of SPEs in order to mitigate market exposures
+on Enron investments, including investments in NPW, Rhythms NetConnections,
+Inc., and other technology, energy, and energy-related companies. LJM made $191
+million in equity investments in five separate SPEs, three of which (Raptor I,
+II and IV) were also capitalized with Enron stock and derivatives which could
+have required the future delivery of Enron stock. Raptor III was capitalized
+with an economic interest in warrants convertible into stock of NPW. The fifth
+SPE is discussed in Section 2B above. Enron subsequently engaged in hedging
+transactions with these SPEs, which included price swap derivatives, call
+options and put options. The derivatives and options generally were intended to
+hedge Enron's risk in certain investments having an aggregate notional amount of
+approximately $1.9 billion.
+
+
+<PAGE>
+
+
+                                      -15-
+
+With respect to the four Raptor SPEs, Enron acquired LJM2's equity in the SPEs
+during the third quarter of 2001 for $35 million. Enron recognized pre-tax
+earnings (losses) relating to risk management activities of $119 million, $518
+million and ($166) million in 1999, 2000 and 2001, respectively, including the
+effect of a $711 million pre-tax charge recognized in 2001, related to the
+termination of the Raptor SPEs. During 2000 and the nine months ended September
+30, 2001, the Raptor SPEs hedged losses of $501 million and $453 million,
+respectively. The fifth SPE was used to hedge Enron's exposure arising from an
+investment in the stock of Rhythms NetConnections, Inc. However, it was
+subsequently determined that it did not meet the criteria to qualify for
+unconsolidated treatment. (See Section 2B for a discussion of the restatement
+related to the fifth SPE.)
+
+In total, LJM1 and LJM2 invested $191 million and received $319 million (an
+estimated $95 million of which is non-cash value from the receipt of 3.6 million
+shares of Enron restricted stock) related to their investments in these five
+SPEs.
+
+G.  Call Option.
+
+In May 2000, Enron purchased a call option from LJM2 on two gas turbines, at the
+same time that LJM2 contracted to purchase the gas turbines from the
+manufacturer. Enron paid LJM2 $1.2 million for this right during a seven-month
+period in 2000. The call option gave Enron the right to acquire these turbines
+from LJM2 at LJM2's cost, which was $11.3 million. The call option was
+subsequently assigned from Enron to an Enron-sponsored SPE capitalized by a
+third-party financial institution. In December 2000, the call option was
+exercised by the SPE and it acquired the turbines from LJM2 at cost.
+
+
+
+<PAGE>
+
+                                      -16-
+
+H. Transactions with LJM and Other Entities.
+
+Enron sold its contractual right to acquire a gas turbine to a utility for $15.8
+million in July 2000. Enron recognized a pre-tax gain of $3.5 million on the
+transaction. At the same time, the utility entered into a put option agreement
+with LJM2 relating to the turbine under which the utility paid LJM2 $3.5
+million. Subsequently, upon the execution of an engineering, procurement and
+construction contract with a wholly-owned subsidiary of Enron, the utility
+assigned the contractual right to acquire the gas turbine to that subsidiary.
+
+In December 1999, Enron sold an equity investment in Enron Nigeria Barge Ltd. to
+an investment bank and provided seller financing. In June of 2000, LJM2
+purchased this equity investment directly from the investment bank for $7.5
+million and the assumption of the seller-financed note from Enron. In September
+2000, LJM2 sold the equity investment to an industry participant for $31.2
+million. The proceeds from LJM2's sale were used by LJM2 to repay the principal
+and interest on the note from Enron in the amount of $23.0 million. The
+remaining $8.2 million repaid LJM2's $7.5 million purchase price and provided a
+profit of $700,000 to LJM2.
+
+I. Transaction between LJM and Whitewing.
+
+In December 1999, a wholly-owned subsidiary of Whitewing entered into a $38.5
+million credit agreement with LJM2, the borrower. The loan had a term of one
+year and carried an interest rate of LIBOR+2.5%. The loan amount (including
+interest) of $40.3 million was repaid by LJM2 in 2000.
+
+
+
+<PAGE>
+                                      -17-
+
+J. Currently Outstanding LJM2 Transactions.
+
+Enron believes that LJM2 currently has interests in six of the investments
+described above in which LJM2 originally invested $124 million, and that LJM2
+has received cash inflows of $27 million from these investments. These
+investments include $23 million in equity in two Enron-sponsored SPEs, $32.5
+million in equity in Osprey Trust $3 million in equity in an Enron affiliate,
+and $50.7 million in direct equity investments in NPW (representing two
+transactions).
+
+Enron and LJM2 also entered into various agreements relating to cash management
+services, employee services, and office space provided by Enron to LJM2. In
+addition, Enron paid LJM2 a management fee for certain transactions, and other
+transaction fees described above. Enron also reimbursed LJM2 for
+transaction-related expenses (such as legal and tax fees and other costs)
+associated with some of the transactions described above.
+
+6. Other Transactions
+
+Like many other companies involved in trade and finance, Enron (through
+affiliates, subsidiaries, and SPEs) routinely engages in financing arrangements
+with third-party financial institutions, including commercial banks, investment
+banks and institutional investors, to fund acquisitions of assets or businesses,
+project development activities, and similar business arrangements. These
+activities are transacted with third parties using structures similar in some
+respects to the arrangements entered into with LJM. Enron provides credit
+support to the creditors of SPEs through the use of financial guarantees and
+hedging contracts. The payment of fees to third-party
+
+
+<PAGE>
+
+                                      -18-
+
+
+financial institutions and institutional investors, such as debt and equity
+placement fees and structuring fees, is common in debt and equity syndications.
+
+7. Other Employee Transactions
+
+From June 1993 through November 1997, an Enron subsidiary was the general
+partner of JEDI and a third-party, the California Public Employees' Retirement
+System ("CalPERS"), was the limited partner. In November 1997, JEDI made a
+liquidating distribution to CalPERS of $383 million. Concurrently, Chewco
+purchased a limited partnership interest in JEDI for $383 million, $132 million
+of which was financed by an interest-bearing loan from JEDI to Chewco, and $240
+million of which was borrowed from a third-party financial institution
+(supported by a guarantee from Enron). The restatement resulting from the Chewco
+transaction is discussed in 2A. Based on current information, Enron believes
+that a non-executive officer of an Enron division, Michael J. Kopper, was an
+investor in the general partner of Chewco and, at the time of the purchase, also
+was the manager of the Chewco general partner.
+
+From December 1997 to December 2000, Chewco received distributions of $433
+million from JEDI. Among other things, Chewco used a portion of these
+distributions to make repayments on its JEDI loan and to repay an additional
+borrowing from the third-party financial institution.
+
+In December 1999, Chewco purchased a $15 million equity interest in Osprey
+Trust, an Enron-sponsored SPE, from LJM1.
+
+
+<PAGE>
+
+
+                                      -19-
+
+In March 2001, Enron purchased Chewco's limited partnership interest in JEDI for
+$35 million. In September 2001, Enron paid an additional $2.6 million to Chewco
+in connection with a tax indemnification agreement between JEDI, Chewco and
+Enron. Of the total purchase consideration, $26 million was used by Chewco to
+make a payment on the JEDI loan. Chewco currently has an outstanding balance due
+on the JEDI loan of $15 million. JEDI is currently a wholly-owned subsidiary of
+Enron.
+
+Enron now believes that Mr. Kopper also was the controlling partner of a limited
+partnership that (through another limited partnership) in March 2000 purchased
+interests in affiliated subsidiaries of LJM1. Enron also now believes that four
+of the six limited partners of the purchaser were, at the time of the
+investment, non-executive officers or employees of Enron, and a fifth limited
+partner was an entity associated with Mr. Fastow. These officers and employees,
+and their most recent job titles with Enron, were Ben Glisan, Managing Director
+and Treasurer of Enron Corp.; Kristina Mordaunt, Managing Director and General
+Counsel of an Enron division; Kathy Lynn, Vice President of an Enron division;
+and Anne Yaeger, a non-officer employee. Enron is terminating the employment of
+Mr. Glisan and Ms. Mordaunt. Ms. Lynn and Ms. Yaeger are no longer associated
+with Enron and Enron believes they are now associated with LJM2. At the time
+these individuals invested in the limited partnership, LJM1 had ceased entering
+into new transactions with Enron. However, some pre-existing investments
+involving LJM1 and Enron were still in effect, and Enron believes that these
+investments resulted in distributions or payments to LJM1 and to the limited
+partnership in which these individuals invested.
+
+
+<PAGE>
+
+                                      -20-
+
+Pursuant to a services agreement among Enron, LJM1, and LJM2, Enron made
+available to LJM1 and LJM2 a portion of the time of certain of its employees to
+provide administrative assistance to the general partners of LJM1 and LJM2. Mr.
+Kopper, Ms. Lynn and Ms. Yaeger, among other Enron employees, were made
+available to LJM1 or LJM2 from time to time during their employment by Enron.
+
+This statement includes forward-looking statements within the meaning of Section
+27A of the Securities Act of 1933 and Section 21E of the Securities Exchange Act
+of 1934. The Private Securities Litigation Reform Act of 1995 provides a safe
+harbor for forward-looking statements made by Enron or on its behalf. These
+forward-looking statements are not historical facts, but reflect Enron's current
+expectations, estimates and projections. All statements contained herein which
+address future operating performance, events or developments that are expected
+to occur in the future (including statements relating to earnings expectations)
+are forward-looking statements. Important factors that could cause actual
+results to differ materially from those in the forward-looking statements herein
+include results of the Special Committee's review and results of the SEC
+investigation.
+
+<PAGE>
+
+                                      -21-
+
+Item 7.  Exhibits.
+
+         (c) Exhibits.
+
+                  Exhibit 99.1   - Enron Corp. press release dated November 8,
+                                   2001 regarding related party and off-balance
+                                   sheet transactions and restatement of
+                                   earnings
+
+
+
+
+
+                                   SIGNATURES
+
+     Pursuant to the requirements of the Securities Exchange Act of 1934, the
+Registrant has duly caused this report to be signed on its behalf by the
+undersigned hereunto duly authorized.
+
+
+                                   ENRON CORP.
+
+
+Date:  November 8, 2001            By: /s/ RICHARD A. CAUSEY
+                                      --------------------------------------
+                                           Richard A. Causey
+                                           Executive Vice President and Chief
+                                             Accounting Officer
+                                             (Principal Accounting Officer)
+<PAGE>
+                               INDEX TO EXHIBITS
+
+
+                         NO.                   DESCRIPTION
+                        ----                   -----------
+
+                  Exhibit 99.1   - Enron Corp. press release dated November 8,
+                                   2001 regarding related party and off-balance
+                                   sheet transactions and restatement of
+                                   earnings
+
+
+</TEXT>
+</DOCUMENT>
+<DOCUMENT>
+<TYPE>EX-99.1
+<SEQUENCE>3
+<FILENAME>h91831ex99-1.txt
+<DESCRIPTION>PRESS RELEASE DATED NOVEMBER 8, 2001
+<TEXT>
+<PAGE>
+[ENRON LOGO]                                           Enron
+                                                       P.O.Box 1188
+                                                       Houston, TX 77251-1188
+
+
+
+
+
+                                                       Mark Palmer
+                                                       (713) 853-4738
+
+ENRON PROVIDES ADDITIONAL INFORMATION ABOUT RELATED PARTY AND OFF-BALANCE SHEET
+- -------------------------------------------------------------------------------
+TRANSACTIONS; COMPANY TO RESTATE EARNINGS FOR 1997-2001
+- -------------------------------------------------------
+
+FOR IMMEDIATE RELEASE:  Thursday, Nov. 8, 2001
+
+         HOUSTON - Enron Corp. (NYSE: ENE) today provided additional
+information about various related party and off-balance sheet transactions in
+which the company was involved. The information was posted today on the
+company's website at www.enron.com/corp/sec and also made available in a Form
+8-K Report filed today with the Securities and Exchange Commission (SEC).
+
+         Specifically, Enron's filing provides information about:
+
+         o    a required restatement of prior period financial statements to
+              reflect the previously disclosed $1.2 billion reduction to
+              shareholders' equity, as well as various income statement and
+              balance sheet adjustments required as the result of a
+              determination by Enron and its auditors, based on current
+              information, that certain off-balance sheet entities should have
+              been included in Enron's consolidated financial statements
+              pursuant to generally accepted accounting principles;
+
+         o    the restatement of its financial statements for 1997 through 2000
+              and the first two quarters of 2001. As a result, financial
+              statements for these periods and the audit reports relating to
+              the year-end financial statements for 1997 through 2000 should
+              not be relied upon;
+
+         o    the accounting basis for the above-mentioned reduction to
+              shareholders' equity;
+
+
+<PAGE>
+
+
+
+
+
+         o    the special committee appointed by the Enron Board of Directors
+              to review transactions between Enron and related parties;
+
+         o    information regarding the two LJM limited partnerships formed by
+              Enron's then Chief Financial Officer, his role in the
+              partnerships, the business relationships and transactions between
+              Enron and the partnerships, and the economic results of those
+              transactions as known thus far; and
+
+         o    transactions between Enron and certain other Enron employees.
+
+         "We believe that the information we have made available addresses a
+number of the concerns that have been raised by our shareholders and the SEC
+about these matters," said Ken Lay, Enron Chairman and CEO. "We will continue
+our efforts to respond to investor requests for information about our
+operational and financial condition so they can evaluate, appreciate and
+appropriately value the strength of our core businesses."
+
+Restatement of Earnings
+- -----------------------
+
+         As further described on Enron's website, and its Form 8-K Report,
+Enron will restate prior years' financial statements to reflect its review of
+current information concerning the transactions discussed below. After taking
+into account Enron's previously disclosed adjustment to shareholders' equity in
+the third quarter of 2001, these restatements have no effect on Enron's current
+financial position.
+
+Based on this review, Enron has determined that:
+
+         o    the financial activities of Chewco Investments, L.P. (Chewco), a
+              related party which was an investor in Joint Energy Development
+              Investments Limited Partnership (JEDI), should have been
+              consolidated beginning in November 1997;
+<PAGE>
+         o    the financial activities of JEDI in which Enron was an investor
+              and which was consolidated into Enron's financial statements
+              during the first quarter of 2001, should have been consolidated
+              beginning in 1997; and
+
+         o    the financial activities of a wholly-owned subsidiary of LJM1,
+              which engaged in structured transactions with Enron that were
+              designed to permit Enron to mitigate market risks of an equity
+              investment in Rhythms NetConnections, Inc., should have been
+              consolidated into Enron's financial statements beginning in 1999.
+
+         Enron's current assessment indicates that the restatement will include
+a reduction to reported net income of approximately $96 million in 1997, $113
+million in 1998, $250 million in 1999 and $132 million in 2000, increases of
+$17 million for the first quarter of 2001 and $5 million for the second quarter
+and a reduction of $17 million for the third quarter of 2001. These changes to
+net income are the result of the retroactive consolidation of JEDI and Chewco
+beginning in November 1997, the consolidation of the LJM1 subsidiary for 1999
+and 2000 and prior year proposed audit adjustments. The consolidation of JEDI
+and Chewco also will increase Enron's debt by approximately $711 million in
+1997, $561 million in 1998, $685 million in 1999 and $628 million in 2000. The
+restatement will have no negative impact on Enron's reported earnings for the
+nine month period ending Sept. 2001.
+
+         Enron is one of the world's leading energy, commodities and services
+companies. The company markets electricity and natural gas, delivers energy and
+other physical commodities, and provides financial and risk management services
+to customers around the world. Enron's Internet address is www.enron.com. The
+stock is traded under the ticker symbol "ENE."
+
+This press release includes forward-looking statements within the meaning of
+Section 27A of the Securities Act of 1933 and Section 21E of the Securities
+Exchange Act of 1934. The Private Securities Litigation Reform Act of 1995
+provides a safe harbor for forward-looking statements made by Enron or on its
+behalf. These forward-looking statements are not historical facts, but reflect
+Enron's current expectations, estimates and projections. All statements
+contained in this press release which address future operating performance,
+events or developments that are expected to occur in the future (including
+statements relating to earnings expectations) are forward-looking statements.
+Important factors that could cause actual results to differ materially from
+those in the forward-looking statements herein include results of the Special
+Committee's review and results of the S.E.C. investigation.
+
+                                      ###
+
+
+</TEXT>
+</DOCUMENT>
+</SEC-DOCUMENT>
+-----END PRIVACY-ENHANCED MESSAGE-----

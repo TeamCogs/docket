@@ -1,18 +1,19 @@
 /**
- * Hybrid retrieval — vector + BM25, with rerank pluggable on top.
+ * Hybrid retrieval — vector + BM25 + cross-encoder rerank.
  *
- * Why hybrid: dense embeddings handle paraphrase well; BM25 handles exact
- * matches well (party names, statute numbers, dates). Legal documents punish
- * pure-dense retrieval — the lawyer asks "What did Lay say to Watkins about
- * the deal in October 2001?" and the right chunk is one that literally
- * contains "Lay", "Watkins", and "October 2001". Mix early, rerank late.
+ * Pipeline:
+ *   1. Dense vector search (nomic-embed-text) → top 30 candidates
+ *   2. BM25 keyword search                   → top 30 candidates
+ *   3. Reciprocal-rank fusion                → unified top-30 list
+ *   4. Cross-encoder rerank (bge-reranker-v2-m3 sidecar) → final top-8
  *
- * Reranking status: Ollama (as of May 2026) does not serve cross-encoder
- * rerankers. The week-1 build runs without rerank — just the top-K from the
- * RRF-fused hybrid pass. Week 2 work adds a small Python sidecar that loads
- * BAAI/bge-reranker-v2-m3 and exposes a /rerank endpoint. The eval harness
- * is what tells us how much precision we leave on the table by skipping it.
- * See TODO[scott] below.
+ * The reranker sidecar is optional. If RERANKER_URL is unreachable the
+ * pipeline falls back to RRF ordering silently, so the app stays functional
+ * without it running.
+ *
+ * Start the sidecar:
+ *   pip install -r reranker/requirements.txt
+ *   python -m uvicorn reranker.server:app --host 127.0.0.1 --port 8001
  */
 
 import { embed } from "./ollama";
@@ -23,6 +24,8 @@ const EMBEDDING_DIM = 768; // nomic-embed-text (Ollama, v1.5)
 
 const HYBRID_TOP_K = 30;
 const RERANK_TOP_K = 8;
+
+const RERANKER_URL = process.env.RERANKER_URL ?? "http://127.0.0.1:8001";
 
 /** Reciprocal-rank fusion weights. Vector beats BM25 a bit by default. */
 const VECTOR_WEIGHT = 0.6;
@@ -75,23 +78,39 @@ export async function retrieve(matterId: MatterId, query: string): Promise<Retri
 }
 
 /**
- * Cross-encoder rerank.
+ * Cross-encoder rerank via the bge-reranker-v2-m3 Python sidecar.
  *
- * TODO[scott] week 2: implement this against a Python sidecar that loads
- * BAAI/bge-reranker-v2-m3. The sidecar should expose POST /rerank taking
- * { query: string, passages: string[] } and returning { scores: number[] }.
- * Re-run `pnpm eval` before and after to capture the precision delta on
- * the Enron golden set — the README claim depends on a measured number.
+ * Generic over R so the full row type flows through — callers get back the
+ * same objects they passed in, just re-scored and re-sorted. This also fixes
+ * the narrow-type mismatch that previously caused a TS2345 error.
  *
- * For week 1 this is a passthrough so the pipeline runs end-to-end without
- * the reranker. The hybrid-retrieval-only ordering is good enough to
- * demonstrate the rest of the system (grounding, citation rendering, eval).
+ * Graceful degradation: any fetch error (sidecar not running, timeout, etc.)
+ * falls back to the RRF-ordered input silently.
  */
-async function rerankCandidates(
-  _query: string,
-  hits: Array<{ row: { chunk_id: string; text: string; doc_metadata_prefix: string }; score: number }>,
-): Promise<typeof hits> {
-  return hits;
+async function rerankCandidates<R extends { text: string; doc_metadata_prefix: string }>(
+  query: string,
+  hits: Array<{ row: R; score: number }>,
+): Promise<Array<{ row: R; score: number }>> {
+  if (hits.length === 0) return hits;
+  try {
+    // Include the metadata prefix so the cross-encoder sees document provenance
+    // (e.g. "SEC Complaint" vs "10-K Exhibit") as part of the passage context.
+    const passages = hits.map((h) =>
+      h.row.doc_metadata_prefix ? `${h.row.doc_metadata_prefix}\n${h.row.text}` : h.row.text,
+    );
+    const res = await fetch(`${RERANKER_URL}/rerank`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, passages }),
+    });
+    if (!res.ok) throw new Error(`reranker HTTP ${res.status}`);
+    const { scores } = (await res.json()) as { scores: number[] };
+    return hits
+      .map((h, i) => ({ ...h, score: scores[i] ?? h.score }))
+      .sort((a, b) => b.score - a.score);
+  } catch {
+    return hits; // sidecar unavailable — fall back to RRF ordering
+  }
 }
 
 function rowToChunk(row: {
