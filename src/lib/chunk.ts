@@ -64,16 +64,20 @@ export function chunk(input: ChunkInput): Chunk[] {
 
 function splitWithSeparators(text: string, target: number, separators: string[]): string[] {
   if (text.length <= target) return [text];
-  for (const sep of separators) {
+  for (let i = 0; i < separators.length; i++) {
+    const sep = separators[i];
     if (sep === "") {
       // Last-resort hard split.
       const out: string[] = [];
-      for (let i = 0; i < text.length; i += target) out.push(text.slice(i, i + target));
+      for (let j = 0; j < text.length; j += target) out.push(text.slice(j, j + target));
       return out;
     }
     if (!text.includes(sep)) continue;
     const parts = text.split(sep);
-    return mergeUntilSize(parts, sep, target);
+    const merged = mergeUntilSize(parts, sep, target);
+    const rest = separators.slice(i + 1);
+    // Any merged part still over target gets recursively split with finer separators.
+    return merged.flatMap(p => p.length <= target ? [p] : splitWithSeparators(p, target, rest));
   }
   return [text];
 }

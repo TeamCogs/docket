@@ -59,8 +59,23 @@ export async function* stream(opts: {
   }
 }
 
+// nomic-bert hard context limit is 2048 tokens; dot/dash leaders in TOC pages
+// tokenize 1:1 and can blow the budget. Collapse runs before embedding.
+function normalizeForEmbed(text: string): string {
+  return text
+    .replace(/[.\-_]{3,}/g, "...")  // collapse long dot/dash/underscore runs
+    .replace(/ {2,}/g, " ")         // collapse extra spaces
+    .trim();
+}
+
 /** Single embedding call. Used during ingest and at query time. */
 export async function embed(texts: string[], model = process.env.DOCKET_EMBED_MODEL ?? "nomic-embed-text"): Promise<number[][]> {
-  const res = await ollama.embed({ model, input: texts });
-  return res.embeddings;
+  // Send one at a time — older Ollama servers (< 0.3) don't support array
+  // input on /api/embed and silently concatenate them, blowing the context.
+  const results: number[][] = [];
+  for (const text of texts) {
+    const res = await ollama.embed({ model, input: normalizeForEmbed(text) });
+    results.push(...res.embeddings);
+  }
+  return results;
 }
