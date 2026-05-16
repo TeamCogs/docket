@@ -31,9 +31,12 @@ export async function complete(opts: {
   // starts, satisfying undici's 30s headersTimeout. With stream: false,
   // Ollama buffers the full response before sending any headers — on large
   // prompts with a 32B model that exceeds the timeout every time.
+  //
+  // /no_think disables qwen3's extended reasoning mode. We're doing structured
+  // JSON extraction — thinking tokens add minutes of latency with no quality gain.
   const it = await ollama.generate({
     model: opts.model,
-    prompt: opts.prompt,
+    prompt: opts.prompt + "\n/no_think",
     system: opts.system,
     format: opts.jsonMode ? "json" : undefined,
     options: { temperature: opts.temperature ?? 0.1 },
@@ -55,7 +58,7 @@ export async function* stream(opts: {
 }): AsyncGenerator<string> {
   const it = await ollama.generate({
     model: opts.model,
-    prompt: opts.prompt,
+    prompt: opts.prompt + "\n/no_think",
     system: opts.system,
     options: { temperature: opts.temperature ?? 0.1 },
     stream: true,
@@ -71,7 +74,8 @@ function normalizeForEmbed(text: string): string {
   return text
     .replace(/[.\-_]{3,}/g, "...")  // collapse long dot/dash/underscore runs
     .replace(/ {2,}/g, " ")         // collapse extra spaces
-    .trim();
+    .trim()
+    .slice(0, 7500);                // nomic-embed-text hard limit is 2048 tokens (~8k chars)
 }
 
 /** Single embedding call. Used during ingest and at query time. */

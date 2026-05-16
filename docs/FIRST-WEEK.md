@@ -139,11 +139,11 @@ pnpm models:pull
 
 This downloads ~22 GB. Reasonable to start it before you go to lunch.
 
-Note: the reranker (`bge-reranker-v2-m3`) is **not** pulled here. Ollama doesn't
-serve cross-encoder rerankers, so week 1 runs the hybrid retriever's top-K
-directly into the generator. The week-2 task is to add a small Python sidecar
-that loads the reranker from HuggingFace and exposes a `/rerank` endpoint;
-the eval harness is designed to measure the precision lift when that lands.
+Note: the reranker (`bge-reranker-v2-m3`) is a separate Python sidecar — Ollama
+doesn't serve cross-encoder models. It's already implemented in `reranker/`;
+see Phase 5.5 to start it. The pipeline degrades gracefully to RRF ordering
+when the sidecar isn't running, so you can skip it for a first brief run and
+add it once the rest of the pipeline checks out.
 
 While the pull runs, you can keep coding — the models live in
 `~/.ollama/models/` and don't block anything else.
@@ -365,9 +365,12 @@ doesn't, you have a concrete list of things to fix.
 Common causes, in order of frequency:
 
 1. **Retrieval mismatched.** The retrieval queries in
-   `src/lib/prompts/sections.ts` are generic. Edit them for the Enron domain
-   ("Enron special purpose entity SPE LJM Raptor", "Skilling Lay Fastow
-   resigned").
+   `src/lib/prompts/sections.ts` are domain-agnostic by design — they use
+   `(matter: string) => string[]` functions so the first query anchors to
+   the right document cluster for any legal practice area. If a section
+   comes back nearly empty, check that you passed `matterName` correctly
+   (it becomes the anchor term). The cross-encoder reranker (Phase 5.5)
+   further improves ranking once retrieval is pulling the right candidates.
 2. **Re-grounding too strict.** Edit `src/lib/ground.ts` to lower
    `TIER1_OVERLAP` from 0.4 to 0.3 and `TIER2_COS` from 0.78 to 0.7.
 3. **Model returning malformed JSON.** Check the raw model output by adding
@@ -375,6 +378,67 @@ Common causes, in order of frequency:
    `SectionRawSchema.parse()` call.
 4. **Chunks too small to carry context.** Bump `TARGET_TOKENS` in
    `src/lib/chunk.ts` from 800 to 1200.
+
+---
+
+## Phase 5.5 — Start the cross-encoder reranker sidecar (~15 minutes setup, first run downloads ~1.1 GB)
+
+The hybrid retriever (vector + BM25 → RRF) is good, but it can let
+off-topic chunks win on keyword overlap. The cross-encoder reranker
+re-scores every candidate pair `(query, passage)` jointly using
+`BAAI/bge-reranker-v2-m3`, which cuts noise significantly — especially
+for timeline (where date-dense utility filings otherwise dominate) and
+parties (where boilerplate entity-name mentions outscore narrative
+references).
+
+The pipeline falls back to RRF order when the sidecar isn't running, so
+this is optional but recommended before evaluating brief quality.
+
+### 5.5.1 Install the Python dependencies
+
+Run from the project root (`/path/to/docket`):
+
+```bash
+pip3 install -r reranker/requirements.txt
+# or: python3 -m pip install -r reranker/requirements.txt
+```
+
+Requires Python 3.10+. On Apple Silicon this installs the MPS-enabled
+`torch` wheel; the sidecar auto-detects `mps` → `cuda` → `cpu`.
+
+### 5.5.2 Start the sidecar
+
+In a dedicated terminal (keep it running alongside `pnpm dev`):
+
+```bash
+pnpm reranker
+```
+
+First run downloads `BAAI/bge-reranker-v2-m3` (~1.1 GB) from HuggingFace
+into the default model cache. Subsequent starts are fast (model already
+on disk). When ready you'll see:
+
+```text
+Reranker ready.
+INFO:     Uvicorn running on http://127.0.0.1:8001
+```
+
+### 5.5.3 Verify it's healthy
+
+```bash
+curl http://127.0.0.1:8001/health
+# → {"status":"ok","model":"BAAI/bge-reranker-v2-m3","device":"mps"}
+```
+
+### 5.5.4 Re-run the brief with the sidecar active
+
+```bash
+pnpm tsx scripts/brief.ts
+```
+
+With the reranker running, the timeline section should now surface the
+four key Enron dates (2001-08-14, 2001-10-16, 2001-11-08, 2001-12-02)
+instead of Oregon utility regulatory filings.
 
 ---
 
@@ -549,9 +613,13 @@ surprised you. Recruiters love this. It signals you actually built it.
 | `ollama serve` says "address in use" | Already running | Skip — already running is the desired state. |
 | Embeddings come back as `[]` | Wrong model name | Confirm `ollama list` shows `nomic-embed-text` exactly. |
 | Brief generation hangs > 10 min on one section | Model loaded slow first time; subsequent calls fast | Wait it out once; future runs reuse the cached model. |
+| `UND_ERR_HEADERS_TIMEOUT` on a section | Ollama buffers the full response before sending HTTP headers with `stream: false`; fixed upstream | `ollama.ts` already uses `stream: true` internally — if you see this, check you haven't reverted that. |
 | Suppression rate hits 100% | Re-grounding too aggressive for your text | Lower thresholds in `src/lib/ground.ts`. |
 | Retrieval recall is 0 | LanceDB index didn't build | Delete `data/matters/demo-enron/` and re-ingest. |
 | Webview shows blank page | Hydration mismatch | Look for `useState` or `Date` in a server component; mark client-side bits with `"use client";`. |
+| Reranker sidecar won't start | Missing Python deps or wrong Python version | `pip3 install -r reranker/requirements.txt`; requires Python 3.10+. macOS ships `pip3`, not `pip`. |
+| Reranker starts but `device: cpu` is slow | MPS not detected | Confirm `torch.backends.mps.is_available()` returns `True`; install the Apple Silicon torch wheel via `pip install torch`. |
+| Timeline still dominated by off-topic chunks | Reranker not running | Confirm `curl http://127.0.0.1:8001/health` returns `{"status":"ok",...}` before running the brief script. |
 
 ---
 
@@ -560,6 +628,11 @@ surprised you. Recruiters love this. It signals you actually built it.
 - A pushed, public GitHub repo with real ingestion working end-to-end.
 - A real generated brief over real Enron documents you can show in your
   browser.
+- A four-stage retrieval pipeline: dense vector → BM25 → RRF → cross-encoder
+  rerank (BAAI/bge-reranker-v2-m3 sidecar, with graceful fallback).
+- Domain-agnostic retrieval queries that work across all legal practice areas
+  (corporate, criminal, family, estate, employment, IP, immigration, and more),
+  not just the Enron corpus.
 - A first eval run with actual recall numbers committed to the repo.
 - A dev journal entry that signals taste and discipline to anyone reading.
 

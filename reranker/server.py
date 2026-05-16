@@ -2,8 +2,8 @@
 Docket reranker sidecar — BAAI/bge-reranker-v2-m3.
 
 Start:
-  pip install -r reranker/requirements.txt
-  python -m uvicorn reranker.server:app --host 127.0.0.1 --port 8001
+  pip3 install -r reranker/requirements.txt
+  python3 -m uvicorn reranker.server:app --host 127.0.0.1 --port 8001
 
 Environment variables:
   RERANKER_MODEL       HuggingFace model ID (default: BAAI/bge-reranker-v2-m3)

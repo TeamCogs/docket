@@ -23,9 +23,10 @@ import { embed, complete } from "./ollama";
 import type { Chunk, Citation, GroundingState } from "./types";
 
 const TIER1_OVERLAP = 0.4;
-const TIER2_COS = 0.78;
+const TIER2_COS = 0.70;
 
-const MODEL = process.env.DOCKET_MODEL_DEFAULT ?? "qwen3:32b-q4_K_M";
+// The judge only answers yes/no — 8B is fast and accurate enough.
+const JUDGE_MODEL = process.env.DOCKET_JUDGE_MODEL ?? "qwen3:8b-q4_K_M";
 
 export interface GroundingInput {
   claim: string;
@@ -90,7 +91,8 @@ function bigrams(s: string): Set<string> {
 }
 
 async function embeddingSimilarity(claim: string, chunks: Chunk[]): Promise<number> {
-  const [embedded] = [await embed([claim, chunks.map((c) => c.text).join("\n")])];
+  const passage = chunks.map((c) => c.text).join("\n");
+  const [embedded] = [await embed([claim, passage])];
   const [a, b] = embedded;
   return cosine(a, b);
 }
@@ -119,7 +121,7 @@ ${passages}
 
 Does the passage above support the claim? Be strict — only answer true if the passage states or directly implies the claim.`;
   try {
-    const raw = await complete({ model: MODEL, prompt, jsonMode: true, temperature: 0 });
+    const raw = await complete({ model: JUDGE_MODEL, prompt, jsonMode: true, temperature: 0 });
     const parsed = JSON.parse(raw) as { supports?: boolean };
     return parsed.supports === true;
   } catch {

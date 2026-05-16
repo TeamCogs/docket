@@ -58,19 +58,20 @@ Keep the snapshot to ONE item, three to five sentences total. If you cannot infe
 
   parties: {
     kind: "parties",
-    maxChunks: 16,
+    maxChunks: 10,
     // Five queries spanning every practice area:
-    //   [1] matter-anchored anchor for named individuals
-    //   [2] adversarial roles — litigation (civil + criminal) and regulatory
-    //   [3] fiduciary/estate roles — probate, trust, guardianship, conservatorship
-    //   [4] transactional/employment roles — corporate, real estate, IP, labor
+    //   [1] matter-anchored on executive/officer titles — pulls complaint/report paragraphs
+    //       that name "Kenneth Lay, Chairman and CEO" etc. rather than SPE entity names
+    //   [2] CFO/controller/accountant titles — targets Fastow, Causey, Andersen
+    //   [3] adversarial roles — litigation (civil + criminal) and regulatory
+    //   [4] fiduciary/estate roles — probate, trust, guardianship, conservatorship
     //   [5] counsel and witnesses — universal
     retrievalQueries: (matter) => [
-      `${matter} named individual person party principal`,
-      "plaintiff petitioner claimant applicant defendant respondent accused indicted suspect",
-      "trustee executor administrator beneficiary guardian conservator heir devisee settlor",
-      "employer employee officer director partner member landlord tenant licensor licensee inventor assignee",
-      "counsel attorney law firm retained witness expert deponent testified",
+      `${matter} chief executive officer chairman president CEO director board`,
+      "chief financial officer CFO controller accountant auditor treasurer comptroller",
+      "plaintiff petitioner claimant defendant respondent accused indicted suspect co-conspirator",
+      "trustee executor administrator beneficiary guardian conservator heir assignee licensor licensee",
+      "counsel attorney law firm retained witness expert deponent whistleblower",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 
@@ -87,24 +88,25 @@ Identify the parties and their roles. Output JSON of the form:
   ]
 }
 
-One item per party. Use only names that appear in the passages. Do not infer "client" — leave role as "unknown" unless the passages clearly indicate it.`,
+One item per named person or organization. Limit to 12 items maximum — prioritize key individuals over minor entities. Use only names that appear in the passages. Do not infer "client" — leave role as "unknown" unless the passages clearly indicate it.`,
   },
 
   timeline: {
     kind: "timeline",
-    maxChunks: 16,
+    maxChunks: 10,
     // Five queries spanning every practice area:
-    //   [1] matter-anchored anchor
+    //   [1] matter-anchored on significant legal/corporate events — "announced resigned filed"
+    //       forces the anchor toward material events, not scheduling emails
     //   [2] litigation filings and court orders — civil, criminal, regulatory
-    //   [3] personal status events — family law, estate, immigration
-    //   [4] employment and corporate events
-    //   [5] financial/transactional events — bankruptcy, securities, real estate
+    //   [3] corporate and securities events — restatement, bankruptcy, disclosure, SEC filing
+    //   [4] employment and personal status events
+    //   [5] transactional events — closing, default, foreclosure, settlement
     retrievalQueries: (matter) => [
-      `${matter} date event occurred`,
-      "filed petition complaint motion order judgment decree entered arrest arraigned sentenced",
-      "death died deceased born married divorced separated custody adopted naturalized",
-      "hired fired terminated resigned appointed promoted incident accident injury hospitalized",
-      "signed executed closed settled restatement bankruptcy default foreclosure evicted",
+      `${matter} announced resigned indicted charged restated disclosed filed`,
+      "complaint petition filed judgment decree entered arrest arraigned convicted sentenced order",
+      "restatement bankruptcy disclosed announced press release 8-K 10-K earnings reported",
+      "hired fired terminated resigned appointed promoted died born married divorced naturalized",
+      "signed executed closed settled default foreclosure merger acquisition evicted",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 
@@ -181,13 +183,14 @@ Limit to 8 items. Order by importance to a first-read.`,
     kind: "risks",
     // Five queries covering risk categories across all practice areas:
     //   [1] matter-anchored
-    //   [2] public-vs-internal contradictions — securities, corporate governance, employment
+    //   [2] executive public statements while knowing contrary internal facts — targets
+    //       the Lay/Skilling "everything is fine" vs. internal board materials pattern
     //   [3] concealment and conflicts — corporate fraud, estate self-dealing, divorce hidden assets
     //   [4] capacity, coercion, and consent — estate (undue influence), family, contract
     //   [5] procedural and documentary — universal
     retrievalQueries: (matter) => [
       `${matter} risk red flag adverse contradiction`,
-      "public statement press release announcement versus internal record memo board minutes",
+      `${matter} publicly stated represented told while privately knew concealed internal documents show`,
       "undisclosed withheld concealed hidden conflict self-dealing related party asset transfer",
       "undue influence incapacity incompetence duress coercion misrepresentation lack consent",
       "statute limitations deadline expired lapsed unsigned missing signature gap omission",
@@ -213,17 +216,17 @@ Begin each item with the risk kind tag wrapped in angle brackets, e.g. <contradi
   open_questions: {
     kind: "open_questions",
     retrievalQueries: (matter) => [
-      `${matter} missing gap unknown unresolved`,
-      "exhibit referenced not produced attached enclosed see document missing",
-      "date uncertain unclear approximately unknown ambiguous period",
-      "unresolved pending outstanding open issue contradiction inconsistency gap",
+      `${matter} unanswered unclear unresolved disputed contradicts`,
+      "referenced exhibit attachment schedule appendix not produced not provided not available",
+      "inconsistent conflicts with contradicts differs from earlier statement prior testimony",
+      "unknown unclear uncertain not determined not established identity whereabouts motive",
     ],
     userPrompt: (passages, matter) => `Matter: ${matter}
 
 Passages:
 ${passages}
 
-List information gaps: documents referenced but missing, ambiguous dates, unresolved contradictions. Output JSON:
+A lawyer is reviewing this matter for the first time. List open questions they would need answered: missing or unproduced documents, ambiguous or conflicting dates, unresolved contradictions between sources, and factual gaps that affect the legal analysis. Output JSON:
 {
   "items": [
     {
@@ -233,7 +236,7 @@ List information gaps: documents referenced but missing, ambiguous dates, unreso
   ]
 }
 
-Begin each item with the kind tag wrapped in angle brackets, e.g. <missing_exhibit>: description. If the gap is a missing document, chunk_refs may be empty.`,
+Begin each item with the kind tag wrapped in angle brackets, e.g. <missing_exhibit>: description. Aim for 3–6 items. If there are no meaningful gaps, return 2–3 questions any lawyer new to this matter would want answered before proceeding.`,
   },
 
   next_steps: {
