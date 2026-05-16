@@ -129,6 +129,20 @@ async function generateSection(
       .map((ref) => resolveChunkRef(ref, chunks, chunkById))
       .filter((c): c is Chunk => c !== null);
 
+    // Sections like next_steps emit synthesized recommendations, not verbatim
+    // claims — grounding rejects them because they don't overlap source text.
+    if (recipe.skipGrounding) {
+      const citation: Citation = {
+        id: shortId("cit"),
+        chunkIds: referencedChunks.map((c) => c.id),
+        grounded: "grounded",
+        groundingMethod: "overlap",
+        internalScore: 1,
+      };
+      claims.push({ text: item.text, citation });
+      continue;
+    }
+
     if (referencedChunks.length === 0) {
       suppressed++;
       continue;

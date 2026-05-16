@@ -91,10 +91,14 @@ function bigrams(s: string): Set<string> {
 }
 
 async function embeddingSimilarity(claim: string, chunks: Chunk[]): Promise<number> {
-  const passage = chunks.map((c) => c.text).join("\n");
-  const [embedded] = [await embed([claim, passage])];
-  const [a, b] = embedded;
-  return cosine(a, b);
+  try {
+    const passage = chunks.map((c) => c.text).join("\n");
+    const [embedded] = [await embed([claim, passage])];
+    const [a, b] = embedded;
+    return cosine(a, b);
+  } catch {
+    return 0; // fall through to tier-3 LLM judge
+  }
 }
 
 function cosine(a: number[], b: number[]): number {

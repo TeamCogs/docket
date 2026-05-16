@@ -27,24 +27,23 @@ export async function complete(opts: {
   jsonMode?: boolean;
   temperature?: number;
 }): Promise<string> {
-  // stream: true so Ollama sends HTTP headers immediately when generation
-  // starts, satisfying undici's 30s headersTimeout. With stream: false,
-  // Ollama buffers the full response before sending any headers — on large
-  // prompts with a 32B model that exceeds the timeout every time.
-  //
-  // /no_think disables qwen3's extended reasoning mode. We're doing structured
-  // JSON extraction — thinking tokens add minutes of latency with no quality gain.
-  const it = await ollama.generate({
+  // Uses chat API (not generate) so the qwen3 chat template is applied and
+  // /no_think is recognized as a control token, not literal text.
+  // Streaming keeps headers flowing immediately, avoiding undici headersTimeout.
+  const messages: Array<{ role: "system" | "user"; content: string }> = [];
+  if (opts.system) messages.push({ role: "system", content: opts.system });
+  messages.push({ role: "user", content: "/no_think\n\n" + opts.prompt });
+
+  const it = await ollama.chat({
     model: opts.model,
-    prompt: opts.prompt + "\n/no_think",
-    system: opts.system,
+    messages,
     format: opts.jsonMode ? "json" : undefined,
     options: { temperature: opts.temperature ?? 0.1 },
     stream: true,
   });
   let response = "";
   for await (const chunk of it) {
-    if (chunk.response) response += chunk.response;
+    if (chunk.message?.content) response += chunk.message.content;
   }
   return response;
 }
@@ -56,15 +55,18 @@ export async function* stream(opts: {
   system?: string;
   temperature?: number;
 }): AsyncGenerator<string> {
-  const it = await ollama.generate({
+  const messages: Array<{ role: "system" | "user"; content: string }> = [];
+  if (opts.system) messages.push({ role: "system", content: opts.system });
+  messages.push({ role: "user", content: "/no_think\n\n" + opts.prompt });
+
+  const it = await ollama.chat({
     model: opts.model,
-    prompt: opts.prompt + "\n/no_think",
-    system: opts.system,
+    messages,
     options: { temperature: opts.temperature ?? 0.1 },
     stream: true,
   });
   for await (const chunk of it) {
-    if (chunk.response) yield chunk.response;
+    if (chunk.message?.content) yield chunk.message.content;
   }
 }
 
@@ -75,7 +77,7 @@ function normalizeForEmbed(text: string): string {
     .replace(/[.\-_]{3,}/g, "...")  // collapse long dot/dash/underscore runs
     .replace(/ {2,}/g, " ")         // collapse extra spaces
     .trim()
-    .slice(0, 7500);                // nomic-embed-text hard limit is 2048 tokens (~8k chars)
+    .slice(0, 5000);                // nomic-embed-text hard limit is 2048 tokens; 5k chars ≈ 1400 tokens
 }
 
 /** Single embedding call. Used during ingest and at query time. */

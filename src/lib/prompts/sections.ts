@@ -18,6 +18,11 @@ export interface SectionRecipe {
   // Override the default 8-chunk cap. Sections that need to identify many
   // distinct entities (parties, timeline) benefit from a wider net.
   maxChunks?: number;
+  // When true, items are emitted without re-grounding. Use for sections whose
+  // items are synthesized recommendations rather than claims extracted from text
+  // (e.g. next_steps) — grounding rejects them because they don't overlap the
+  // source passages verbatim.
+  skipGrounding?: boolean;
   userPrompt: (passages: string, matter: string) => string;
 }
 
@@ -104,7 +109,7 @@ One item per named person or organization. Limit to 12 items maximum — priorit
     retrievalQueries: (matter) => [
       `${matter} announced resigned indicted charged restated disclosed filed`,
       "complaint petition filed judgment decree entered arrest arraigned convicted sentenced order",
-      "restatement bankruptcy disclosed announced press release 8-K 10-K earnings reported",
+      "announced disclosed earnings charge restatement bankruptcy verdict judgment settlement ruling granted denied issued",
       "hired fired terminated resigned appointed promoted died born married divorced naturalized",
       "signed executed closed settled default foreclosure merger acquisition evicted",
     ],
@@ -140,17 +145,17 @@ Only include events for which the passages provide a specific date. If a date is
 Passages:
 ${passages}
 
-Identify claims, causes of action, and defenses surfaced in the passages. Output JSON of the form:
+Extract every allegation, cause of action, legal theory, and defense stated or implied in the passages. There will always be at least one — do not return an empty list. Output JSON:
 {
   "items": [
     {
-      "text": "<asserted|implied>: <claim or defense label>. <one-sentence explanation drawn from the passage>",
+      "text": "<asserted|implied>: <claim label>. <one-sentence explanation drawn from the passage>",
       "chunk_refs": ["<passage ids>"]
     }
   ]
 }
 
-"asserted" means the claim is in a pleading. "implied" means it is mentioned in correspondence or notes but not yet pled. Use only labels that appear in the passages — do not infer statutes.`,
+"asserted" = claim appears in a pleading or formal finding. "implied" = mentioned in correspondence or notes but not yet pled. Extract from what is in the passages — do not infer statutes not mentioned.`,
   },
 
   key_facts: {
@@ -241,6 +246,7 @@ Begin each item with the kind tag wrapped in angle brackets, e.g. <missing_exhib
 
   next_steps: {
     kind: "next_steps",
+    skipGrounding: true,
     retrievalQueries: (matter) => [
       `${matter} next step action needed follow up`,
       "document request subpoena obtain acquire production order",

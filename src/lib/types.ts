@@ -325,6 +325,15 @@ export const RawClaimSchema = z.object({
 });
 export type RawClaim = z.infer<typeof RawClaimSchema>;
 
-export const SectionRawSchema = z.object({
-  items: z.array(RawClaimSchema),
-});
+// Preprocess: the model sometimes returns the array under a key other than
+// "items" (e.g. "claims", "events", "facts"). Find the first array value and
+// normalise it to { items: [...] } so the rest of the pipeline is unaffected.
+export const SectionRawSchema = z.preprocess((val) => {
+  if (typeof val === "object" && val !== null) {
+    const v = val as Record<string, unknown>;
+    if (Array.isArray(v.items)) return val;
+    const arrayKey = Object.keys(v).find((k) => Array.isArray(v[k]));
+    if (arrayKey) return { items: v[arrayKey] };
+  }
+  return val;
+}, z.object({ items: z.array(RawClaimSchema).default([]) }));
