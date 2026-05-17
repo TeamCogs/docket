@@ -3,8 +3,8 @@
  *
  * Each section has its own retrieval query template and its own JSON schema.
  * Keeping them in one file makes the schema/prompt relationship auditable
- * at a glance — important when an interviewer asks you to walk through how
- * the brief is generated.
+ * at a glance — useful both for debugging individual section regressions
+ * and for showing how the brief is generated to anyone reading the source.
  */
 
 import type { BriefSectionKind, Chunk } from "../types";

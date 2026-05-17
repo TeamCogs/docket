@@ -1,7 +1,7 @@
-# First Week — From Clone to a Real Brief
+# Docket LM — First Week: From Clone to a Real Brief
 
 The scaffold is done. This guide takes you from a fresh `git clone` to seeing
-Docket render a real brief over ~10 actual Enron documents. The goal is
+Docket LM render a real brief over ~10 actual Enron documents. The goal is
 **validate the pipeline end-to-end with real model inference** before you
 touch anything else. Once you've seen Qwen3 produce a real cited brief in
 your browser, every subsequent week of work — UI polish, Tauri wrapping,
@@ -201,7 +201,7 @@ For the FERC emails: just grab a couple of folders that mention key people
 
 That's fine for week 1. Skipping OCR doesn't block the pipeline — the
 `ocr.ts` module is stubbed, and text-layer PDFs go through `unpdf` cleanly.
-Note in your dev journal that OCR is week-2 work.
+Note in your build notes that OCR is week-2 work.
 
 ### 3.3 What you should have at this point
 
@@ -357,8 +357,10 @@ Read each section. Ask yourself:
   hallucinations.
 
 This is the moment you'll genuinely have a feel for whether the architecture
-works. If it does, you've validated the entire portfolio thesis. If it
-doesn't, you have a concrete list of things to fix.
+works end-to-end. If it does, you've validated the technical thesis behind
+Docket — local-only RAG over real legal documents producing a brief a lawyer
+would recognize. If it doesn't, you have a concrete list of things to fix
+before moving to week 2.
 
 ### 5.3 If the brief is empty or wrong
 
@@ -586,11 +588,14 @@ pnpm eval
 ```
 
 You'll get a real recall@5 number. Commit the results file in `docs/evals/`.
-This is the artifact you can point at in interviews.
+This is the artifact that grounds Docket's quality claims in measured numbers
+rather than adjectives. Every subsequent change to retrieval, reranking, or
+re-grounding gets tested against the same harness, and regressions show up
+the moment they happen.
 
 ---
 
-## Phase 8 — Commit, push, write the dev journal entry (~1 hour)
+## Phase 8 — Commit, push, write the week-1 build notes (~1 hour)
 
 ```bash
 git add .
@@ -598,9 +603,11 @@ git commit -m "Week 1: end-to-end pipeline working over 10 Enron docs"
 git push
 ```
 
-In your README or a `docs/dev-journal.md`, write 200–400 words on what you
-learned this week. Specifics — what failed first, what you tuned, what
-surprised you. Recruiters love this. It signals you actually built it.
+In a `docs/build-notes/week-1.md`, write 200–400 words on what came up while
+wiring this. Specifics — what failed first, what you tuned, what surprised
+you. The build notes are a useful artifact for anyone contributing later
+and a forcing function for catching the things-that-feel-fragile while
+they're still fresh.
 
 ---
 
@@ -625,18 +632,20 @@ surprised you. Recruiters love this. It signals you actually built it.
 
 ## What you'll have at the end of week 1
 
-- A pushed, public GitHub repo with real ingestion working end-to-end.
-- A real generated brief over real Enron documents you can show in your
-  browser.
+- A pushed GitHub repo with folder ingestion working end-to-end.
+- A real generated brief over real Enron documents rendered in your browser.
 - A four-stage retrieval pipeline: dense vector → BM25 → RRF → cross-encoder
-  rerank (BAAI/bge-reranker-v2-m3 sidecar, with graceful fallback).
-- Domain-agnostic retrieval queries that work across all legal practice areas
-  (corporate, criminal, family, estate, employment, IP, immigration, and more),
-  not just the Enron corpus.
-- A first eval run with actual recall numbers committed to the repo.
-- A dev journal entry that signals taste and discipline to anyone reading.
+  rerank (`BAAI/bge-reranker-v2-m3` sidecar, with graceful fallback to RRF
+  order when the sidecar isn't running).
+- Domain-agnostic retrieval queries that will accept any legal practice area
+  once the per-area brief schemas land in week 2.
+- A first eval run with actual recall@5, citation precision, and faithfulness
+  numbers committed to the repo.
+- A week-1 build notes entry capturing what came up.
 
-That's enough to start having conversations about the project. The Tauri
-wrap, the polished demo video, and the expanded eval set are weeks 2–4 —
-but the technical thesis is validated the moment Phase 5 produces a brief
-you'd recognize as the Enron story.
+That's the v1.0 week-1 build. Week 2 adds the practice-area-tuned brief
+schemas (probate, family law, PI), the Ask Anything pipeline, and the Apple
+Mail on-disk reader. Week 3 brings iMessage scoping, pasted notes, photos,
+drag-in, and the first-run permissions flow. Week 4 lands audio
+transcription, the full eval suite, and the signed `.dmg`. See
+[`Docket-SPEC.md §3`](../Docket-SPEC.md) for the staged build plan.

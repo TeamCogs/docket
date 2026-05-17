@@ -4,8 +4,8 @@
  * Why hand-rolled instead of LangChain.js:
  *   1. No framework churn risk — Ollama's API surface is small and stable.
  *   2. Every call is auditable. The Rust core inspects the request bytes.
- *   3. When an interviewer asks "walk me through your retrieval pipeline,"
- *      I can.
+ *   3. The pipeline is short enough to read end-to-end without a framework
+ *      abstraction in the way.
  *
  * This module is server-only — never imported from a client component.
  */

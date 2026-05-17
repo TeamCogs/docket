@@ -21,7 +21,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/" className="flex items-center gap-2 group">
             <Logo />
             <span className="font-sans font-semibold tracking-tight text-ink-900 group-hover:text-navy-600">
-              Docket
+              Docket LM
             </span>
           </Link>
           <nav className="hidden sm:flex items-center gap-1 text-sm">

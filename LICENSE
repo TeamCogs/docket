@@ -1,21 +1,62 @@
-MIT License
+Docket LM
+Copyright (C) 2026 Scott Cognato
 
-Copyright (c) 2026 Scott Cognato
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+License for more details.
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+The full text of the GNU Affero General Public License version 3 is
+available at:
+
+    https://www.gnu.org/licenses/agpl-3.0.txt
+    https://www.gnu.org/licenses/agpl-3.0.html
+
+To install the full canonical text in this file in place of this notice,
+run from the repository root:
+
+    curl -o LICENSE https://www.gnu.org/licenses/agpl-3.0.txt
+
+---
+
+ADDITIONAL TERMS UNDER SECTION 7 OF THE AGPL
+
+"Docket LM" is a trademark of Scott Cognato. Modified versions of this
+software may not be distributed under the name "Docket LM" or any name
+confusingly similar without prior written permission. This restriction is
+permitted by Section 7(e) of the AGPL.
+
+---
+
+COMMERCIAL LICENSE
+
+A separate commercial license is available for organizations that need to
+integrate the Docket LM engine into proprietary software that the AGPL
+would otherwise prohibit. Contact through https://docketlm.app for terms.
+
+The bundled signed and notarized application binary is distributed under
+this AGPL license; a paid subscription to the Docket LM service entitles
+the subscriber to the signed binary distribution, ongoing model updates,
+new practice-area schemas, and support — none of which alters the rights
+granted under the AGPL with respect to the source code.
+
+THIRD-PARTY COMPONENTS
+
+This software includes third-party components under their own licenses:
+- Qwen3 model weights (Apache 2.0)
+- nomic-embed-text model weights (Apache 2.0)
+- BAAI/bge-reranker-v2-m3 model weights (MIT)
+- whisper.cpp and Whisper model weights (MIT)
+- Tesseract OCR (Apache 2.0)
+- LanceDB (Apache 2.0)
+- Tauri (MIT or Apache 2.0)
+- Next.js, React (MIT)
+See each component's repository for full license text.

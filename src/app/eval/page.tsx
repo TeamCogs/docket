@@ -1,11 +1,13 @@
 import EvalTable from "@/components/eval/EvalTable";
 
 /**
- * The Eval Lab. This is the page Scott opens during interview screen-shares.
+ * The Eval Lab.
  *
- * It surfaces the latest eval run's results and a comparison row against
+ * Surfaces the latest eval run's results and a comparison row against
  * baselines: naive single-pass RAG, whole-doc-in-context, no-rerank,
- * no-regrounding. The goal is to make retrieval-quality concrete.
+ * no-regrounding. The goal is to make retrieval-quality concrete —
+ * measurable numbers committed to the repo rather than adjectives in a
+ * README.
  */
 export default function EvalPage() {
   return (

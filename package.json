@@ -1,9 +1,12 @@
 {
-  "name": "docket",
+  "name": "docket-lm",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A fully-local desktop app for solo and small-firm lawyers. Folder in, cited brief out. Nothing leaves the device.",
+  "description": "Docket LM — a fully-local desktop application for solo and small-firm lawyers. Ingest a matter workspace; get a cited first-read brief and an Ask Anything interface. Nothing leaves the device.",
+  "license": "AGPL-3.0-or-later",
+  "author": "Scott Cognato",
+  "homepage": "https://docketlm.app",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

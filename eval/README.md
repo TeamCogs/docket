@@ -25,8 +25,8 @@ and grounding pipeline against three baselines.
 
 ## Why this matters
 
-Most portfolio RAG demos report no quality numbers at all. The eval harness is
-what turns Docket from "another RAG demo" into "this person thinks about AI
-quality as a measurable, defensible engineering and product problem." It is
-the artifact the README leads with and the conversation anchor for every
-interview.
+Most RAG applications don't measure their own quality. Docket does, on every
+commit, with numbers committed to the repo. The eval harness is what lets
+us defend the citation precision claim with data, makes regressions
+unignorable, and gives lawyers a real basis for trust beyond "it looks
+about right." It is the artifact the README leads with.

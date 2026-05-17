@@ -3,8 +3,8 @@ import type { NextConfig } from "next";
 /**
  * Docket runs in two modes:
  *   1. Tauri shell (production) — Next.js is statically exported into the webview.
- *   2. Browser dev (recruiters on Linux/Windows) — Next.js dev server with Node-side
- *      adapters for what the Rust core normally provides.
+ *   2. Browser dev (developers and contributors on Linux/Windows) — Next.js dev
+ *      server with Node-side adapters for what the Rust core normally provides.
  *
  * The `output: 'export'` flag is enabled when bundling for Tauri.
  */
