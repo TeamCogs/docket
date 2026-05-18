@@ -224,6 +224,35 @@ The first-run modal explains each permission in plain English and shows
 exactly which workspace source types it unlocks. The lawyer can grant
 selectively and Docket degrades cleanly per missing permission.
 
+## Design system & offline guarantee
+
+The UI uses a CSS custom-property token system layered under a semantic
+Tailwind palette. Tokens like `--paper`, `--ink`, `--ink-2`, `--surface`,
+`--rule`, and `--accent` are defined once in `src/app/globals.css` and
+referenced through Tailwind classes (`bg-paper`, `text-ink`, `border-rule`).
+Light/dark mode and any future theme variants are a single block of token
+overrides, not a per-component refactor.
+
+Two architecturally important constraints on the design layer:
+
+1. **Fonts are self-hosted via `next/font/google`.** Next's font loader
+   downloads the font files at build time and serves them from the same
+   origin as the app. At runtime, the browser never reaches out to
+   `fonts.googleapis.com` or `fonts.gstatic.com`. This preserves the
+   zero-outbound-bytes guarantee for the Tauri offline build — a Google
+   Fonts `<link>` tag would otherwise be an outbound request every cold
+   load and would break the firewall audit.
+
+2. **No external CDNs for any asset.** Every script, stylesheet, font,
+   and image either ships in the bundle or is bundled at build time. The
+   `pnpm verify:offline` check is the source of truth on this; if it
+   ever reports a non-loopback connection, the design or component layer
+   has introduced a regression.
+
+The component-level visual language is documented in
+[`docs/UI-BRIEF.md`](UI-BRIEF.md) (preserved as the design intent for the
+v1.0 system). The current implementation lives in `src/components/`.
+
 ## Cross-platform notes
 
 - **macOS** is the v1.0 target. All sidecars are validated on Apple Silicon.

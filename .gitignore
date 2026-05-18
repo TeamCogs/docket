@@ -35,3 +35,8 @@ logs/
 # Build outputs
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Design raw handoff bundles — useful locally for retracing design
+# decisions; not appropriate for source control (large, vendor-specific
+# format, not the source of truth for the implementation).
+design_handoff_*/

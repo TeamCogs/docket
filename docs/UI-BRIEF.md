@@ -1,9 +1,13 @@
 # Docket LM — UI Brief for Claude Design
 
-This is the handoff brief for visual design work. It is intentionally shorter
-and more opinionated than the [main spec](../Docket-SPEC.md). Read this first;
-go to the spec only when a design decision needs the underlying constraint
-that drove a product choice.
+> **Status:** Implemented in commit `fd2fa78` (Claude Design Editorial handoff).
+> This document is preserved as a reference for the design intent that drove
+> the v1.0 visual system. For the current state of the UI, read the components
+> in `src/components/` directly. Future redesigns should write a fresh brief
+> rather than amend this one.
+
+This was the handoff brief for visual design work. It is intentionally shorter
+and more opinionated than the [main spec](../Docket-SPEC.md).
 
 ---
 

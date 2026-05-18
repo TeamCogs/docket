@@ -1,14 +1,21 @@
 # Docket LM — First Week: From Clone to a Real Brief
 
-The scaffold is done. This guide takes you from a fresh `git clone` to seeing
-Docket LM render a real brief over ~10 actual Enron documents. The goal is
-**validate the pipeline end-to-end with real model inference** before you
-touch anything else. Once you've seen Qwen3 produce a real cited brief in
-your browser, every subsequent week of work — UI polish, Tauri wrapping,
-eval expansion — is downhill.
+The scaffold and the full visual design system are done. This guide takes
+you from a fresh `git clone` to seeing Docket LM render a real brief over
+~10 actual Enron documents. The goal is **validate the pipeline end-to-end
+with real model inference, then replace the UI's mocked data with the real
+engine outputs.**
 
-Estimated time: 8–14 focused hours spread across the week. The slowest part
-is the one-time model download (~25 GB).
+The UI shipped ahead of the engine wiring — the matter wizard, Ask Anything
+pill, citation panel, license states, and settings cards all exist and look
+right, but most of them currently render mocked data. Phase 6 below is where
+you swap those mocks for live IPC calls. Until Phase 6 lands, you can see
+real briefs by running `pnpm tsx scripts/brief.ts` from the CLI and pointing
+the matter page at `data/matters/demo-enron/brief.json` (already wired in
+commit `fd2fa78`).
+
+Estimated time: 10–18 focused hours spread across the week. The slowest
+single step is the one-time model download (~28 GB).
 
 If you get stuck, jump to the troubleshooting section at the bottom.
 
@@ -444,56 +451,33 @@ instead of Oregon utility regulatory filings.
 
 ---
 
-## Phase 6 — Wire it to the UI (~2–3 hours)
+## Phase 6 — Replace UI mocks with the real engine (~3–5 hours)
 
-Now connect what works in the CLI to the dev server.
+The visual design (commit `fd2fa78`) shipped a complete UI: matter wizard,
+Ask Anything pill, citation panel with `j`/`k` navigation, license states,
+settings cards. Most of those surfaces currently render mock data. Phase 6
+is where you swap the mocks for live IPC calls so the UI is driven by the
+engine you validated in Phases 4 and 5.
 
-### 6.1 Replace the mock brief on the matter page
+There's no UI design work in this phase — only wiring. If a screen looks
+right but acts wrong, the fix is in the data path, not the component.
 
-Edit `src/app/matter/[id]/page.tsx`:
+### 6.1 Matter page → real `brief.json` (already done)
 
-```tsx
-import BriefView from "@/components/brief/BriefView";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import type { Brief } from "@/lib/types";
+`src/app/matter/[id]/page.tsx` already reads `data/matters/<id>/brief.json`
+from disk (wired in commit `fd2fa78`). After Phase 5 runs successfully, the
+matter page at `/matter/demo-enron` should render the brief without further
+work. If it doesn't, confirm `DOCKET_DATA_DIR` points at the right place
+and that `scripts/brief.ts` actually wrote the file.
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
+### 6.2 Citation panel → real source span
 
-export default async function MatterPage({ params }: PageProps) {
-  const { id } = await params;
-  const briefPath = join(
-    process.env.DOCKET_DATA_DIR ?? "./data/matters",
-    id,
-    "brief.json",
-  );
-  let brief: Brief | null = null;
-  try {
-    brief = JSON.parse(await readFile(briefPath, "utf-8")) as Brief;
-  } catch {
-    /* no brief yet */
-  }
-  if (!brief) {
-    return (
-      <div className="mx-auto max-w-prose py-10 text-ink-500">
-        No brief yet. Run <code>pnpm tsx scripts/brief.ts</code> first.
-      </div>
-    );
-  }
-  return <BriefView brief={brief} />;
-}
-```
+The citation panel (`src/components/brief/CitationPanel.tsx`) has the
+visual treatment in place — slide-in side panel on desktop, bottom sheet
+on mobile, `j`/`k` navigation between citations. What it needs is a real
+API to fetch the cited chunk's text instead of the placeholder.
 
-Restart `pnpm dev` and navigate to `/matter/demo-enron`. You should see the
-brief you generated in Phase 5, rendered with real data.
-
-### 6.2 Wire the citation panel to the real source span
-
-Edit `src/components/brief/CitationPanel.tsx`. Replace the `<em>The cited
-paragraph will render here...</em>` placeholder with a fetch from a new API
-route. Add `src/app/api/source/[chunkId]/route.ts`:
+Add `src/app/api/source/[chunkId]/route.ts`:
 
 ```ts
 import { openMatter, getChunksTable, getChunk } from "@/lib/lancedb";
@@ -503,8 +487,8 @@ export const runtime = "nodejs";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ chunkId: string }> }) {
   const { chunkId } = await params;
-  // chunk_id is "<docId>#<idx>"; the matterId we'd need to thread through
-  // properly. For week 1, hard-code demo-enron.
+  // chunk_id is "<docId>#<idx>"; for week 1 we hard-code demo-enron.
+  // The matter routing in the URL is week-2 work.
   const conn = await openMatter("demo-enron");
   const table = await getChunksTable(conn, 768);
   const row = await getChunk(table, chunkId);
@@ -518,15 +502,61 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ chu
 }
 ```
 
-Then in `CitationPanel.tsx`, swap the placeholder for a `useEffect` that
-fetches `/api/source/${citation.chunkIds[0]}` and renders the returned text.
+Then in `CitationPanel.tsx`, replace the placeholder paragraph with a
+`useEffect` that fetches `/api/source/${citation.chunkIds[0]}` when a
+citation is selected and renders the returned text. Cache results in
+component state so revisiting the same citation doesn't re-fetch.
 
-### 6.3 Optional: the drop-zone wiring
+### 6.3 Matter wizard → real ingest stream
 
-For week 1, skip this — generating new matters via CLI is fine. The
-`DropZone.tsx` wiring is week-2 work because it requires a folder-picker
-shim (browsers can't read folder paths directly; you need either a Tauri
-IPC or the File System Access API with a permission prompt).
+The wizard at `/new-matter` walks the lawyer through Name → Practice area
+→ Attach material → Review, then runs an "ingest" pass that's currently
+six simulated stages with mocked outliers. Replace the simulation with the
+real pipeline:
+
+- Add `src/app/api/ingest/route.ts` that calls `ingestFolder()` from
+  `src/lib/ingest.ts` and streams progress events back as Server-Sent
+  Events (or a `ReadableStream` of JSON lines).
+- In `MatterWizard.tsx`, replace the hard-coded `STAGES` walkthrough with
+  a fetch to `/api/ingest` and update the stage UI from the streamed
+  progress events.
+- Replace `MOCK_OUTLIERS` with the real `result.outlierDocIds` mapped to
+  filename + reason. The clustering pass already runs in `ingestFolder()`;
+  surface its output.
+- On ingest completion, write a placeholder `brief.json` (or trigger
+  `generate_brief` and stream sections) so the post-wizard redirect to
+  `/matter/<id>` lands on a populated matter page.
+
+For week 1, audio transcription and photo OCR can stay as mocked stages —
+the file types are listed in the wizard but the actual sidecar wiring is
+week-3 work. Ingest a folder of PDFs + emails and call it good for the
+first pass.
+
+### 6.4 Ask Anything → real `/api/ask` stream
+
+The Ask Anything pill (`src/components/AskAnything.tsx`) has the UI: input
+affordance, history drawer, decline-on-draft messaging. Wire it to the
+existing `src/app/api/ask/route.ts` (or create it if it's stubbed) that
+calls `retrieve()` → `rerank()` → `complete()` → re-ground over the matter
+chunks, with the drafting-intent guardrail.
+
+When the lawyer asks "draft a motion to compel," the route should return
+the polite decline (handled at the prompt or intent-classifier level), not
+attempt the generation. The decline state already has a UI treatment in
+the history drawer.
+
+### 6.5 License state — mock, with real validation deferred
+
+`src/lib/license-store.ts` currently defaults to `{ kind: "active",
+expiresAt: "" }`. Real offline-validated key parsing (RSA signature verify
+against a bundled public key) is v1.1 work, not week 1. For now, you can
+manually `setLicense({ kind: "trial", daysLeft: 9 })` from the browser
+console to see the trial pill, or `{ kind: "expired", expiredAt: "..." }`
+to see the read-only banner and disabled controls — useful for designer
+review of those states.
+
+Keep the store interface the way the design built it; real validation
+just plugs in as the initial value loader.
 
 ---
 
@@ -632,8 +662,10 @@ they're still fresh.
 
 ## What you'll have at the end of week 1
 
-- A pushed GitHub repo with folder ingestion working end-to-end.
-- A real generated brief over real Enron documents rendered in your browser.
+- A pushed GitHub repo with folder ingestion working end-to-end against the
+  real engine.
+- A real generated brief over real Enron documents, rendered in the shipped
+  UI — wizard, citation panel, license states, and all.
 - A four-stage retrieval pipeline: dense vector → BM25 → RRF → cross-encoder
   rerank (`BAAI/bge-reranker-v2-m3` sidecar, with graceful fallback to RRF
   order when the sidecar isn't running).
@@ -643,9 +675,10 @@ they're still fresh.
   numbers committed to the repo.
 - A week-1 build notes entry capturing what came up.
 
-That's the v1.0 week-1 build. Week 2 adds the practice-area-tuned brief
-schemas (probate, family law, PI), the Ask Anything pipeline, and the Apple
-Mail on-disk reader. Week 3 brings iMessage scoping, pasted notes, photos,
-drag-in, and the first-run permissions flow. Week 4 lands audio
-transcription, the full eval suite, and the signed `.dmg`. See
+That's the v1.0 week-1 build. Week 2 adds the three bespoke practice-area
+schemas (probate, family law, PI), the Apple Mail on-disk reader, and real
+Ask Anything API wiring. Week 3 brings iMessage scoping, pasted notes,
+photos, drag-in, and the real offline license-key validator (RSA signature
+verify against a bundled public key). Week 4 lands audio transcription via
+the Whisper.cpp sidecar, the full eval suite, and the signed `.dmg`. See
 [`Docket-SPEC.md §3`](../Docket-SPEC.md) for the staged build plan.
