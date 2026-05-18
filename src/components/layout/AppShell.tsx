@@ -5,71 +5,134 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import NetworkBadge from "./NetworkBadge";
 import EthicsFooter from "@/components/compliance/EthicsFooter";
+import FirstRunModal from "@/components/FirstRunModal";
+import { useLicenseStore } from "@/lib/license-store";
 
 const NAV = [
-  { href: "/", label: "Library" },
-  { href: "/eval", label: "Eval Lab" },
+  { href: "/",        label: "Library" },
+  { href: "/eval",    label: "Eval Lab" },
   { href: "/settings", label: "Settings" },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { license } = useLicenseStore();
+
+  function isActive(href: string): boolean {
+    if (href === "/") return pathname === "/" || pathname.startsWith("/matter/");
+    return pathname.startsWith(href);
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-ink-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <Logo />
-            <span className="font-sans font-semibold tracking-tight text-ink-900 group-hover:text-navy-600">
-              Docket LM
+      {license.kind === "expired" && <ExpiredBanner />}
+
+      {/* Chrome bar */}
+      <header
+        className="sticky top-0 z-50 border-b border-rule"
+        style={{ background: "rgba(246,244,239,0.85)", backdropFilter: "saturate(140%) blur(10px)" }}
+      >
+        <div className="max-w-[1280px] mx-auto px-7 py-3 flex items-center gap-6">
+          {/* Brand mark */}
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 font-medium text-[15px] tracking-[-0.012em] text-ink"
+          >
+            <span className="grid place-items-center w-[22px] h-[22px] rounded-[4px] bg-navy text-white font-serif italic font-medium text-sm leading-none select-none">
+              D
             </span>
+            <span>Docket LM</span>
           </Link>
-          <nav className="hidden sm:flex items-center gap-1 text-sm">
-            {NAV.map((n) => (
+
+          {/* Primary nav */}
+          <nav className="hidden sm:flex gap-0.5 ml-7">
+            {NAV.map((item) => (
               <Link
-                key={n.href}
-                href={n.href}
+                key={item.href}
+                href={item.href}
+                data-active={isActive(item.href)}
                 className={cn(
-                  "px-3 py-1.5 rounded-md text-ink-600 hover:text-ink-900 hover:bg-ink-100 transition-colors",
-                  pathname === n.href && "text-ink-900 bg-ink-100",
+                  "px-3 py-1.5 rounded-md text-sm text-ink-2 font-[450]",
+                  "hover:text-ink hover:bg-[rgba(20,18,12,0.04)]",
+                  "data-[active=true]:text-ink data-[active=true]:bg-[rgba(20,18,12,0.06)]",
+                  "transition-colors duration-[120ms]",
                 )}
               >
-                {n.label}
+                {item.label}
               </Link>
             ))}
           </nav>
-          <NetworkBadge />
+
+          {/* Right side */}
+          <div className="ml-auto flex items-center gap-2.5">
+            <LicensePill />
+            <NetworkBadge />
+          </div>
         </div>
-        {/* Mobile nav. Bottom tab bar is more thumb-friendly than a hamburger. */}
-        <nav className="sm:hidden flex items-center justify-around border-t border-ink-100 text-xs">
-          {NAV.map((n) => (
+
+        {/* Mobile nav */}
+        <nav className="sm:hidden flex items-center justify-around border-t border-rule text-xs">
+          {NAV.map((item) => (
             <Link
-              key={n.href}
-              href={n.href}
+              key={item.href}
+              href={item.href}
               className={cn(
-                "flex-1 py-2 text-center text-ink-500",
-                pathname === n.href && "text-ink-900 font-medium",
+                "flex-1 py-2 text-center text-ink-3",
+                isActive(item.href) && "text-ink font-medium",
               )}
             >
-              {n.label}
+              {item.label}
             </Link>
           ))}
         </nav>
       </header>
-      <main className="flex-1">{children}</main>
+
+      {/* Page content — padded-bottom so content clears the fixed footer */}
+      <main className="flex-1 pb-[52px]">{children}</main>
+
       <EthicsFooter />
+      <FirstRunModal />
     </div>
   );
 }
 
-function Logo() {
+function LicensePill() {
+  const { license } = useLicenseStore();
+
+  if (license.kind === "active" || license.kind === "expired") return null;
+
+  if (license.kind === "trial") {
+    return (
+      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-soft border border-[var(--amber-soft)] text-[13px] text-amber font-[450]">
+        Trial · {license.daysLeft} days left
+        <Link href="/settings" className="underline underline-offset-2 hover:no-underline ml-0.5">
+          Renew
+        </Link>
+      </span>
+    );
+  }
+
+  // renewal
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden>
-      <rect x="2" y="3" width="13" height="14" rx="1.5" fill="#1f2c47" />
-      <rect x="5" y="6" width="13" height="14" rx="1.5" fill="#384e7d" opacity="0.55" />
-      <line x1="8" y1="9" x2="14" y2="9" stroke="white" strokeWidth="1" />
-      <line x1="8" y1="12" x2="14" y2="12" stroke="white" strokeWidth="1" />
-      <line x1="8" y1="15" x2="11" y2="15" stroke="white" strokeWidth="1" />
-    </svg>
+    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-3 border border-rule text-[13px] text-ink-2 font-[450]">
+      Renewal due in {license.daysLeft} days
+      <Link href="/settings" className="underline underline-offset-2 hover:no-underline ml-0.5">
+        Renew
+      </Link>
+    </span>
+  );
+}
+
+function ExpiredBanner() {
+  return (
+    <div className="bg-brick-soft border-b border-rule-strong px-7 py-2.5 text-sm text-ink flex items-center justify-center gap-3.5">
+      <strong className="text-brick">License expired.</strong>
+      <span className="text-ink-2">
+        Existing matters are read-only. Renew at docketlm.app to resume new matter work.
+      </span>
+      <Link href="/settings" className="ml-1.5 px-2.5 py-1 rounded border border-rule-strong bg-surface text-sm text-ink hover:bg-surface-2 transition-colors duration-[120ms]">
+        Renew
+      </Link>
+    </div>
   );
 }

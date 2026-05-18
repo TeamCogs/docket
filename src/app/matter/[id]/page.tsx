@@ -14,6 +14,7 @@ export default async function MatterPage({ params }: PageProps) {
     id,
     "brief.json",
   );
+
   let brief: Brief | null = null;
   try {
     brief = JSON.parse(await readFile(briefPath, "utf-8")) as Brief;
@@ -23,8 +24,12 @@ export default async function MatterPage({ params }: PageProps) {
 
   if (!brief) {
     return (
-      <div className="mx-auto max-w-prose py-10 text-ink-500">
-        No brief yet. Run <code>pnpm tsx scripts/brief.ts</code> first.
+      <div className="max-w-[1280px] mx-auto px-7 pt-16 text-center">
+        <div className="text-micro mb-3">No brief yet</div>
+        <p className="text-body text-ink-3 max-w-[400px] mx-auto">
+          Run <code className="font-mono-sm bg-surface-3 px-1.5 py-0.5 rounded">pnpm tsx scripts/brief.ts</code> to generate
+          the brief for this matter.
+        </p>
       </div>
     );
   }

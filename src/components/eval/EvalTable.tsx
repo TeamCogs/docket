@@ -1,49 +1,74 @@
-/**
- * Eval table — the comparison view that anchors the README leaderboard.
- *
- * For scaffolding we render plausible placeholder numbers so the layout can
- * be reviewed. The values get replaced by `pnpm eval` output once a real
- * run completes.
- */
+"use client";
 
-const ROWS = [
-  {
-    config: "Docket (hybrid + rerank + re-grounding)",
-    recall: 0.86,
-    precision: 0.91,
-    faithful: 0.94,
-    suppression: 0.07,
-    p50: 6800,
-    headline: true,
-  },
-  { config: "Hybrid + rerank, no re-grounding", recall: 0.86, precision: 0.78, faithful: 0.81, suppression: 0, p50: 5200 },
-  { config: "Vector-only, no rerank", recall: 0.71, precision: 0.69, faithful: 0.76, suppression: 0, p50: 3400 },
-  { config: "Whole doc into context (no retrieval)", recall: 0.65, precision: 0.58, faithful: 0.71, suppression: 0, p50: 14_900 },
-];
+import { cn } from "@/lib/utils";
 
-export default function EvalTable() {
+export interface EvalRow {
+  config:       string;
+  recall:       number;
+  precision:    number;
+  faithfulness: number;
+  suppression:  number;
+  latency:      number;
+  primary?:     boolean;
+}
+
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+
+function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
-    <div className="card overflow-x-auto">
-      <table className="min-w-full text-sm">
-        <thead className="bg-ink-50 text-xs uppercase tracking-wider text-ink-600">
+    <th className={cn(
+      "px-4 py-3 text-[11.5px] uppercase tracking-[0.06em] text-ink-3 font-medium border-b border-rule",
+      align === "left" ? "text-left" : "text-right",
+    )}>
+      {children}
+    </th>
+  );
+}
+
+function Td({ children, align = "left", mono = false }: {
+  children: React.ReactNode;
+  align?: "left" | "right";
+  mono?: boolean;
+}) {
+  return (
+    <td className={cn(
+      "px-4 py-3 text-sm border-b border-rule",
+      align === "right" && "text-right",
+      mono && "font-mono-sm tabular-nums",
+    )}>
+      {children}
+    </td>
+  );
+}
+
+export default function EvalTable({ rows }: { rows: EvalRow[] }) {
+  return (
+    <div className="border border-rule rounded-md overflow-hidden mb-7">
+      <table className="w-full border-collapse">
+        <thead>
           <tr>
-            <th className="text-left px-3 py-2 font-medium">Configuration</th>
-            <th className="text-right px-3 py-2 font-medium">Recall@5</th>
-            <th className="text-right px-3 py-2 font-medium">Citation precision</th>
-            <th className="text-right px-3 py-2 font-medium">Faithfulness</th>
-            <th className="text-right px-3 py-2 font-medium">Suppression</th>
-            <th className="text-right px-3 py-2 font-medium">p50 latency</th>
+            <Th>Configuration</Th>
+            <Th align="right">Recall@5</Th>
+            <Th align="right">Citation precision</Th>
+            <Th align="right">Faithfulness</Th>
+            <Th align="right">Suppression</Th>
+            <Th align="right">p50 latency</Th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-ink-100">
-          {ROWS.map((r) => (
-            <tr key={r.config} className={r.headline ? "bg-grounded-subtle/40" : ""}>
-              <td className="px-3 py-2 text-ink-900 font-medium">{r.config}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{(r.recall * 100).toFixed(0)}%</td>
-              <td className="px-3 py-2 text-right tabular-nums">{(r.precision * 100).toFixed(0)}%</td>
-              <td className="px-3 py-2 text-right tabular-nums">{(r.faithful * 100).toFixed(0)}%</td>
-              <td className="px-3 py-2 text-right tabular-nums">{(r.suppression * 100).toFixed(0)}%</td>
-              <td className="px-3 py-2 text-right tabular-nums">{(r.p50 / 1000).toFixed(1)}s</td>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className={cn(r.primary && "bg-surface-2")}>
+              <Td>
+                <div className="flex items-center gap-2">
+                  {r.primary && <span className="size-1.5 rounded-full bg-sage shrink-0" />}
+                  <span className={r.primary ? "font-medium" : ""}>{r.config}</span>
+                </div>
+              </Td>
+              <Td align="right" mono>{pct(r.recall)}</Td>
+              <Td align="right" mono>{pct(r.precision)}</Td>
+              <Td align="right" mono>{pct(r.faithfulness)}</Td>
+              <Td align="right" mono>{pct(r.suppression)}</Td>
+              <Td align="right" mono>{r.latency.toFixed(1)}s</Td>
             </tr>
           ))}
         </tbody>
