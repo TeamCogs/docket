@@ -464,6 +464,257 @@ Contact for terms. This is a v1.x revenue line, not a v1.0 priority.
 - No vendor lock-in on the lawyer's data — every matter directory is a
   plain folder of files; the lawyer can copy or migrate it at any time.
 
+### 1.15 Research Handoff (v1.1)
+
+After Docket LM produces a first-read brief, a real lawyer's day-two work is
+almost never further extraction — it's *legal* research. Statutes. Case law.
+Jurisdiction-specific procedural rules. Damages comparables. Expert
+witnesses. None of that lives in the matter folder; all of it lives in
+Westlaw, Lexis, CourtListener, or — increasingly — in a frontier model
+trained on a vast corpus of legal text.
+
+Docket LM stays on the machine. The lawyer doesn't have to, and pretending
+they will is dishonest. Research Handoff is the feature that admits the
+reality and structures the boundary safely: Docket LM produces a **redacted
+draft** of the brief plus a list of research questions, suitable for the
+lawyer to paste into the cloud tool of their choice (Claude, ChatGPT,
+Lexis+ AI, Paxton, Spellbook, Harvey if their firm has it). Docket LM itself
+makes no outbound call. The lawyer is the air-gap.
+
+**What the package contains.**
+- A **redacted brief** with every direct identifier pseudonymized
+  consistently: `Plaintiff_1`, `Defendant_1`, `Employer_1`, `Hospital_2`,
+  etc. Role-typed counters preserve readability and relationships
+  (`Plaintiff_1_Spouse`, `Defendant_2_Counsel`) without leaking names.
+- A **list of research questions** extracted from the brief's Open
+  Questions section plus the gaps the brief itself surfaced — framed as
+  questions an outside model can productively answer ("In a [jurisdiction]
+  family-law dissolution, what's the standard for imputed income when a
+  party voluntarily reduces work hours after filing?").
+- **Non-identifying procedural context**: jurisdiction, court level,
+  practice area, procedural posture, key statutes already in play.
+- **Optional generalizations**: dates rounded to quarters by default
+  (`Q4 2022` rather than `2022-11-14`); dollar amounts bucketed by default
+  (`under $50K` / `$50K–$250K` / `over $250K`); specific small-venue
+  locations replaced with regional descriptors.
+
+**What the package never contains.**
+- Real client names, addresses, phone numbers, emails, account numbers.
+- Case numbers, docket numbers, bar numbers, EINs, medical record
+  numbers, VINs.
+- iMessage handles or email-thread metadata.
+- Raw source documents or chunks — only the synthesized brief content
+  passes through redaction; the matter's underlying material never leaves
+  the redaction sidecar, let alone the machine.
+
+**Redaction approach.**
+- Microsoft Presidio (open-source, MIT) runs inside the existing Python
+  sidecar that already hosts the bge-reranker. Adds dependencies but no
+  new process.
+- A legal-domain NER model (LegNER, or `legal-bert` fine-tuned on the
+  CourtListener/FindLaw corpora) loaded via Presidio's
+  `TransformersNlpEngine` provides legal entity recognition the
+  general-purpose recognizers miss.
+- Custom `PatternRecognizer`s for case-number formats, docket numbers,
+  bar numbers, EIN, MRN, VIN, FRCP-5.2-flagged identifiers.
+- Coreference resolution (fastcoref) collapses `he`, `Mr. Smith`,
+  `the plaintiff` to a single canonical entity *before* pseudonymization,
+  so the role label stays consistent across the document.
+
+**Residual-risk surface.** No NER catches everything. Unique fact patterns
+("the November 2022 fire at the only chemical plant in [small county]")
+function as quasi-identifiers that re-identify the matter even with names
+scrubbed. The export preview includes a **Residual Risk** panel that lists
+remaining dates, amounts, and rare entities the model is least confident
+about, with one-click generalization. The lawyer is the final filter.
+
+**Re-import.** When the lawyer brings cloud-tool findings back, they paste
+the text into the matter's External Research section. Docket LM runs a
+reverse-substitution pass using a local **encrypted entity map** (AES-GCM,
+key derived from the matter key via HKDF) stored at
+`matters/<id>/handoff/<export_id>.map`. Pseudonyms swap back to real
+names; the lawyer reviews the substitution diff before saving. Any case
+citations in the imported findings are extracted and surfaced in a
+**Verify Citations** step — the lawyer must click each one to mark it
+verified (Westlaw, CourtListener, or "I read the opinion") before it can
+land in the matter. This is the Mata v. Avianca guardrail: no cloud-model
+citation enters a Docket matter unverified.
+
+**Ethics rails** (anchored on ABA Formal Opinion 512 and California's
+Practical Guidance on the Use of Generative AI, the most directly
+applicable state-bar guidance):
+- **Per-matter informed-consent affirmation.** Before the first export
+  on a given matter, the lawyer affirms they have obtained informed
+  client consent for cloud-tool research on this matter. This is a
+  checkbox in a one-screen modal that quotes the relevant Op. 512
+  language and links to a sample disclosure the lawyer can adapt for
+  their engagement letter.
+- **Preview-and-approve.** The redacted draft renders in a side-by-side
+  preview (original brief left, redacted draft right) before the lawyer
+  copies anything. Nothing is on the clipboard until the lawyer explicitly
+  copies it.
+- **Disclaimer language.** The feature is consistently called
+  "Redacted Draft for Outside Research," not "anonymized." Copy on every
+  surface: "This reduces but does not eliminate confidentiality risk.
+  You remain responsible for client consent and verification."
+- **No auto-send.** Docket LM never makes an outbound API call on the
+  lawyer's behalf. The paste step is the air-gap and the audit trail.
+- **Audit trail.** Each export logs a row in `handoff_exports` (export
+  ID, matter, timestamp, redaction counts, lawyer's destination
+  selection, consent affirmation timestamp) so the lawyer can answer
+  "what did I share, when, where" if the question ever arises.
+
+**Why this is in v1.1, not v1.0.** The redaction pass should be evaluated
+against real shipped briefs before the feature goes to a lawyer. Building
+it before the engine's brief output is stable would tune Presidio against
+mocks. The eval harness needs a Redaction Recall metric (did we catch
+every identifier in the golden set?) and a False-Positive metric (did we
+over-redact and destroy legibility?) before this ships. See the UX brief
+at [`docs/RESEARCH-HANDOFF-BRIEF.md`](../docs/RESEARCH-HANDOFF-BRIEF.md)
+and the implementation prep at
+[`docs/research-handoff-implementation.md`](../docs/research-handoff-implementation.md).
+
+**Out-of-scope additions tied to this feature.**
+- No direct API integration with Harvey, Claude, ChatGPT, or any cloud
+  vendor. The handoff is paste-driven, deliberately.
+- No automatic "best model" suggestion. Docket LM doesn't recommend cloud
+  tools; the lawyer chooses.
+- No re-importing of raw documents fetched from the cloud (the lawyer can
+  always add a folder to the matter the conventional way).
+
+### 1.16 Living Matters: brief updates as new material arrives (v1.1)
+
+A matter is not a snapshot. A probate is filed, then a codicil surfaces six
+weeks later. A PI case is in treatment, and the lawyer receives a new
+batch of medical records every two weeks. A family-law dissolution
+generates new iMessage threads, school-meeting recordings, and discovery
+responses across months. The v1.0 wizard-only ingestion path treats each
+matter as a one-shot event; **Living Matters** is the v1.1 surface that
+fits the real shape of how matters unfold.
+
+**Add Material — three entry points, one flow.**
+1. **Matter view button.** A persistent "Add to matter" affordance at
+   the foot of the matter view next to Export and Research Handoff.
+2. **Drag-onto-matter.** Dragging any file from Finder onto the matter
+   view opens the Add Material panel pre-populated with the dropped
+   item.
+3. **Settings → Sources for this matter → Add source.** The full-fidelity
+   path for adding non-file sources (an Apple Mail label that just
+   accumulated 12 new messages, an iMessage handle that started a new
+   thread, a paste-in note, an audio file, a Photos smart album).
+
+All three converge on the same Add Material flow: select source → confirm
+scope → ingest → see impact.
+
+**The change-detector.** After new chunks are embedded and indexed,
+Docket LM runs an **impact detection** pass section by section against
+the current brief:
+
+- Re-run each section's existing retrieval query (the queries are stored
+  per-section in `brief_sections` already). If any of the new chunks rank
+  in the top-N of any section, that section is flagged as *retrieval-
+  affected*.
+- For each retrieval-affected section, run a lightweight LLM pass that
+  classifies the new chunks vs. the section's current items into one of
+  four labels: **supports** (corroborates an existing claim), **adds**
+  (introduces a new fact the section should include), **contradicts**
+  (conflicts with an existing claim), or **noise** (retrieved but doesn't
+  change the section's content).
+- A section with zero new chunks of label `adds` or `contradicts` is
+  flagged as *no material change* — the lawyer can skip regenerating it.
+
+The detector is the cheap pass that lets the lawyer answer "do I even
+need to look at this update?" in seconds, not minutes.
+
+**Section-level regeneration, lawyer-approved.** Living Matters does not
+silently regenerate the brief. The lawyer sees:
+
+> 3 sections affected by the new material:
+>   • **Timeline of Material Events** — 2 new items, 1 contradicts.
+>   • **Damages Picture** — 4 new items, 2 supports, 2 adds.
+>   • **Open Questions** — 1 resolution (a question was answered).
+>
+> [ Regenerate these 3 sections ] · [ Show me the changes per section ]
+
+Clicking **Regenerate** runs the standard section pipeline (retrieve →
+rerank → generate → re-ground) on just the flagged sections, then surfaces
+a section-by-section diff before saving. The lawyer accepts each section
+or rejects (in which case the section keeps its prior content but the new
+chunks remain indexed for retrieval and Ask Anything).
+
+**Versioning.** Each brief generation creates a new version row in a
+`brief_versions` archive. The matter view always renders the latest
+version by default; a small **version chip** in the matter header reads
+"v3 · updated 2026-06-14" and opens a version history drawer:
+
+> **Versions**
+> v3 · 2026-06-14 · +medical records batch, 3 sections regenerated
+> v2 · 2026-05-29 · +deposition transcript, Timeline regenerated
+> v1 · 2026-05-13 · initial brief from wizard
+
+Clicking any prior version renders the brief as it was at that point in
+time, including the citations it had then. The default action on a prior
+version view is "View only"; the lawyer can "Restore as current" if they
+want to revert.
+
+**Contradictions are first-class, again.** When the detector finds a
+`contradicts` chunk, the regenerated section includes a contradiction
+object the same way the v1.0 brief surfaces contradictions across the
+original documents — but tagged as **NEW**:
+
+> ⚠ NEW contradiction (added 2026-06-14):
+> The 2026-06-12 medical record reports recovery to baseline by 2026-04
+> [cit-44]; prior brief item asserts ongoing treatment as of 2026-05
+> [cit-12]. Review.
+
+This is the closest thing to a "smoking gun" surface the product has,
+and the lawyer should never miss it.
+
+**Ask Anything across versions.** Prior Q&A is preserved as-of-the-time-
+it-was-asked — `qa_history.jsonl` is append-only. The Ask Anything view
+gains a small affordance next to each prior answer: "Re-ask with current
+material." Clicking it re-runs the same question against the latest
+indexed chunks; the new answer appends alongside the original, with both
+timestamps visible. The lawyer can compare answers at-a-glance.
+
+**Research Handoff staleness.** When a brief regenerates, any
+`handoff_exports` rows whose `brief_version_id` is no longer the latest
+are flagged as **stale** in the Handoff Audit table. The lawyer can
+re-export with the current material in two clicks. Pseudonym maps
+persist across versions, so the labels stay consistent — `Plaintiff_1`
+remains John Smith in v3 just as he did in v1.
+
+**External Research preservation.** External Research sections imported
+under a prior version stay attached to that version *and* surface in
+the current matter view (the lawyer's research from May is still
+relevant in June). Each External Research block carries a "(imported
+under v2)" tag for provenance.
+
+**Out-of-scope for Living Matters in v1.1.**
+- **No auto-regeneration.** The detector runs automatically after ingest;
+  the *regen* step is always lawyer-initiated. (A "regenerate on add"
+  toggle is a v1.2 candidate if user research shows lawyers want it.)
+- **No background polling of folders, mailboxes, or threads.** Living
+  Matters is pull-driven — the lawyer presses Add Material when they
+  have something to add. Watching a folder for changes is a v1.2 idea
+  that needs its own ethics analysis (what happens when a privileged
+  doc is dropped in and the lawyer hasn't reviewed it yet?).
+- **No automatic deletion of stale chunks.** If the lawyer wants to
+  remove a source entirely, that's a separate "Remove source" flow on
+  the matter's Sources screen. Add Material is additive only.
+- **No notion of a "closed" matter.** A matter is open or it isn't in
+  v1.1. Archive states with their own UI treatment are a v1.2 nicety.
+
+**Why this is in v1.1, not v1.0.** The v1.0 IPC surface already supports
+`workspace_add_source` — the mechanical "add a source" exists. What
+v1.1 adds is the **impact detector**, **partial regeneration**,
+**versioning**, and the **diff UI**, all of which compound on top of
+the v1.0 brief generation pipeline. Building them before v1.0 ships
+would tune them against pre-stabilization code. See the UX brief at
+[`docs/LIVING-MATTERS-BRIEF.md`](../docs/LIVING-MATTERS-BRIEF.md) and
+the implementation prep at
+[`docs/living-matters-implementation.md`](../docs/living-matters-implementation.md).
+
 ---
 
 ## 2. Technical Architecture

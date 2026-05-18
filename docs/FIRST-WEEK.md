@@ -682,3 +682,46 @@ photos, drag-in, and the real offline license-key validator (RSA signature
 verify against a bundled public key). Week 4 lands audio transcription via
 the Whisper.cpp sidecar, the full eval suite, and the signed `.dmg`. See
 [`Docket-SPEC.md §3`](../Docket-SPEC.md) for the staged build plan.
+
+---
+
+## After v1.0 — v1.1 features
+
+Two substantial features are queued for v1.1, both staged after the
+v1.0 engine is wired and shipping real briefs.
+
+### Research Handoff (v1.1)
+
+A redact-and-export path that lets the lawyer take findings to a cloud
+research tool (Claude, ChatGPT, Lexis+ AI, Paxton, Harvey) and bring
+verified answers back, without sending raw client material anywhere.
+
+Staged after v1.0 so the redaction pass can be tuned against real
+shipped briefs, not mocks. See:
+
+- [`Docket-SPEC.md §1.15`](../Docket-SPEC.md#115-research-handoff-v11) —
+  the canonical spec section.
+- [`docs/RESEARCH-HANDOFF-BRIEF.md`](./RESEARCH-HANDOFF-BRIEF.md) — the
+  Claude Design brief covering the nine screens, the chip system, and
+  the ethics rails.
+- [`docs/research-handoff-implementation.md`](./research-handoff-implementation.md)
+  — the engineering prep covering Presidio in the Python sidecar, the
+  LanceDB additions, the IPC commands, and the eval harness extensions.
+
+### Living Matters (v1.1)
+
+The path that fits the real shape of how matters unfold: lawyers add
+new material to an existing matter (a follow-up email, a deposition
+transcript, a new round of medical records), the brief updates
+materially in response, prior brief versions are preserved, and the
+lawyer is in control of every regeneration. See:
+
+- [`Docket-SPEC.md §1.16`](../Docket-SPEC.md#116-living-matters-brief-updates-as-new-material-arrives-v11) —
+  the canonical spec section.
+- [`docs/LIVING-MATTERS-BRIEF.md`](./LIVING-MATTERS-BRIEF.md) — the
+  Claude Design brief covering the six screens, the change detector,
+  and version history.
+- [`docs/living-matters-implementation.md`](./living-matters-implementation.md)
+  — the engineering prep covering the `brief_versions` and
+  `brief_section_diffs` tables, the impact-detection pipeline, partial
+  regeneration, and the IPC surface.
