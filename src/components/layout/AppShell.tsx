@@ -9,8 +9,7 @@ import FirstRunModal from "@/components/FirstRunModal";
 import { useLicenseStore } from "@/lib/license-store";
 
 const NAV = [
-  { href: "/",        label: "Library" },
-  { href: "/eval",    label: "Eval Lab" },
+  { href: "/",         label: "Library" },
   { href: "/settings", label: "Settings" },
 ];
 

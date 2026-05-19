@@ -371,6 +371,46 @@ function GroundingCard() {
   );
 }
 
+// ─── QualityMeasurementCard ───────────────────────────────────────────────────
+
+function QualityMeasurementCard() {
+  return (
+    <Card className="p-5">
+      <div className="text-micro">Quality measurement</div>
+      <div className="text-h3 mt-1 mb-4">Two surfaces, two audiences.</div>
+      <div className="flex flex-col gap-3">
+        <div className="p-4 bg-surface-2 border border-rule rounded-md flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Chip variant="sage" size="xs">In-app</Chip>
+            <span className="text-sm font-medium text-ink">Matter Quality · in-app, per matter</span>
+          </div>
+          <p className="text-small text-ink-2 leading-[1.55] m-0">
+            Citation density, re-grounding suppression, document coverage, and a
+            per-claim verification checklist. About <em>this</em> brief on{" "}
+            <em>this</em> evidence. Read-only; never aggregates across matters.
+            Open from any matter view header.
+          </p>
+        </div>
+        <div className="p-4 bg-surface-2 border border-rule rounded-md flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Chip variant="neutral" size="xs">Repo</Chip>
+            <span className="text-sm font-medium text-ink">Dev eval harness · GitHub repo</span>
+          </div>
+          <p className="text-small text-ink-2 leading-[1.55] m-0">
+            Recall@5, citation precision, faithfulness, suppression rate against
+            the Enron golden set. Runs via{" "}
+            <code className="font-mono-sm bg-surface-3 px-1.5 py-0.5 rounded">pnpm eval</code>
+            ; results land in{" "}
+            <code className="font-mono-sm bg-surface-3 px-1.5 py-0.5 rounded">docs/evals/</code>{" "}
+            and the GitHub README. Contributor / pre-purchase artifact, never a
+            tab in this app.
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 // ─── Page component ───────────────────────────────────────────────────────────
 
 // Placeholder exports for Settings page — empty until a matter is in scope.
@@ -406,6 +446,7 @@ export default function Settings() {
         <NetworkAuditCard />
         <SourcesPermissionsCard />
         <GroundingCard />
+        <QualityMeasurementCard />
         <HandoffAuditSection exports={exports} onBurnMap={handleBurnMap} />
       </div>
     </div>

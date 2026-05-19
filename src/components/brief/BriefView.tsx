@@ -2,7 +2,7 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, FileText, Plus, Share } from "lucide-react";
+import { BarChart2, ChevronLeft, FileText, Plus, Share } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCitationPanel } from "./citation-panel-store";
 import { useReadOnly } from "@/lib/license-store";
@@ -27,6 +27,12 @@ import ConsentAffirmationModal from "@/components/handoff/ConsentAffirmationModa
 import HandoffComposer from "@/components/handoff/HandoffComposer";
 import ExternalResearchSection from "@/components/handoff/ExternalResearchSection";
 import ResearchImportPanel from "@/components/handoff/ResearchImportPanel";
+
+// Matter Quality
+import { ReviewedClaimsProvider, useReviewedClaims } from "@/components/matter-quality/ReviewedClaimsContext";
+import { ReviewedStateDot } from "@/components/matter-quality/ReviewedStateDot";
+import { MatterQualityPanel } from "@/components/matter-quality/MatterQualityPanel";
+import type { ClaimId } from "@/components/matter-quality/types";
 
 import type {
   Brief,
@@ -182,6 +188,9 @@ export default function BriefView({ brief }: { brief: Brief }) {
   const [showHandoffComposer, setShowHandoffComposer] = useState(false);
   const [showImportPanel,     setShowImportPanel]     = useState(false);
 
+  // ── Quality state ──
+  const [showQuality, setShowQuality] = useState(false);
+
   const externalResearch: ExternalResearch[] = b.externalResearch ?? [];
 
   // Drag handlers — counter trick avoids flicker when crossing child elements
@@ -269,6 +278,7 @@ export default function BriefView({ brief }: { brief: Brief }) {
   const viewingVersion  = versions.find((v) => v.id === viewingId) ?? versions[0];
 
   return (
+    <ReviewedClaimsProvider>
     <div
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
@@ -355,6 +365,16 @@ export default function BriefView({ brief }: { brief: Brief }) {
                 Research Handoff
               </button>
             )}
+            {/* Quality panel */}
+            <button
+              type="button"
+              onClick={() => setShowQuality(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-rule-strong
+                         bg-surface text-sm text-ink hover:bg-surface-2 transition-colors duration-[120ms]"
+            >
+              <BarChart2 className="size-3.5" />
+              Quality
+            </button>
             <button
               type="button"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-rule-strong
@@ -530,7 +550,16 @@ export default function BriefView({ brief }: { brief: Brief }) {
           pseudonyms={MOCK_PSEUDONYMS}
         />
       )}
+
+      {/* ── Matter Quality panel ── */}
+      <MatterQualityPanel
+        matterId={brief.matterId}
+        open={showQuality}
+        onClose={() => setShowQuality(false)}
+        onJumpToSection={scrollToSection}
+      />
     </div>
+    </ReviewedClaimsProvider>
   );
 }
 
@@ -938,23 +967,37 @@ function FootnotesInline({
 function FootnoteChip({
   citation,
   index,
+  claimId,
 }: {
   citation: Citation;
   index: number;
+  claimId?: ClaimId;
 }) {
   const open = useCitationPanel((s) => s.open);
   const activeCitation = useCitationPanel((s) => s.citation);
   const isActive = activeCitation?.id === citation.id;
+  const { reviewed, mark, toggle } = useReviewedClaims();
+  const isReviewed = claimId ? reviewed.has(claimId) : false;
 
   return (
     <button
       type="button"
       className="fn-chip"
       data-active={isActive || undefined}
-      onClick={(e) => { e.stopPropagation(); open(citation); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (claimId) mark(claimId, "source_view");
+        open(citation);
+      }}
       title={`Source ${index}`}
     >
       {index}
+      {claimId && (
+        <ReviewedStateDot
+          reviewed={isReviewed}
+          onToggle={(e) => { e.stopPropagation(); toggle(claimId); }}
+        />
+      )}
     </button>
   );
 }
