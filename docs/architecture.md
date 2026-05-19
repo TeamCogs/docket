@@ -152,9 +152,10 @@ cheapest first:
 3. **LLM-as-judge.** Binary yes/no, deterministic, used only when 1 and 2
    are inconclusive.
 
-If all three fail, the item is dropped and `suppressedCount` increments.
-The Eval Lab aggregates suppression counts by section, which produces a
-useful quality signal over time.
+If all three fail, the item is dropped, `suppressedCount` increments, and
+the dropped claim is written to the `suppressed_claims` table. The Matter
+Quality panel surfaces this per-matter (see [`MATTER-QUALITY-BRIEF.md`](./MATTER-QUALITY-BRIEF.md));
+the dev eval harness rolls it up across the public-corpus golden set.
 
 ## Practice-area schemas
 

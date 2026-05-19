@@ -2,25 +2,51 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, FileText } from "lucide-react";
+import { ChevronLeft, FileText, Plus, Share } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCitationPanel } from "./citation-panel-store";
+import { useReadOnly } from "@/lib/license-store";
 import CitationPanel from "./CitationPanel";
 import ContradictionsPanel from "./ContradictionsPanel";
 import type { Contradiction } from "./ContradictionsPanel";
 import AskAnything from "../AskAnything";
+
+// Living Matters
+import VersionChip from "@/components/living-matters/VersionChip";
+import HistoricalBanner from "@/components/living-matters/HistoricalBanner";
+import MatterDragOverlay from "@/components/living-matters/MatterDragOverlay";
+import AddMaterialPanel from "@/components/living-matters/AddMaterialPanel";
+import IngestingPanel from "@/components/living-matters/IngestingPanel";
+import ImpactReportOverlay from "@/components/living-matters/ImpactReportOverlay";
+import RegenerationPreview from "@/components/living-matters/RegenerationPreview";
+import VersionHistoryDrawer from "@/components/living-matters/VersionHistoryDrawer";
+import UpdatedTag from "@/components/living-matters/UpdatedTag";
+
+// Handoff
+import ConsentAffirmationModal from "@/components/handoff/ConsentAffirmationModal";
+import HandoffComposer from "@/components/handoff/HandoffComposer";
+import ExternalResearchSection from "@/components/handoff/ExternalResearchSection";
+import ResearchImportPanel from "@/components/handoff/ResearchImportPanel";
+
 import type {
   Brief,
   BriefSection,
   BriefSectionKind,
+  BriefV11,
+  BriefVersion,
+  BriefVersionId,
   Citation,
   ClaimItem,
+  ExternalResearch,
+  ImpactReport,
   KeyFactsSection,
   MatterSnapshotSection,
   NextStep,
   OpenQuestion,
   PartiesSection,
   PartyRow,
+  PseudonymEntry,
+  ResidualRisk,
   RiskItem,
   RisksSection,
   TimelineEvent,
@@ -51,12 +77,145 @@ const TOC_LABEL: Record<BriefSectionKind, string> = {
   next_steps:     "Next Steps",
 };
 
+// ─── Mock v1.1 data (placeholder until pipeline wires it) ─────────────────────
+// In production these come from the brief payload (BriefV11). These defaults
+// ensure the UI renders gracefully with v1.0 brief data.
+
+const MOCK_VERSIONS: BriefVersion[] = [
+  {
+    id: "v1",
+    matterId: "",
+    versionNumber: 1,
+    generatedAt: new Date().toISOString(),
+    trigger: "initial",
+    triggerSourceIds: [],
+    triggerSummary: "Initial brief from matter wizard",
+    sectionsRegenerated: [],
+    sectionsCarriedForward: [],
+    schemaVersion: "general",
+    modelVersion: "llama3.2",
+    priorVersionId: null,
+  },
+];
+
+const MOCK_IMPACT_REPORT: ImpactReport = {
+  newSource: { label: "new-document.pdf", newChunks: 7 },
+  againstVersion: { id: "v1", n: 1 },
+  affected: [
+    {
+      sectionId: "s-risks",
+      sectionKind: "risks",
+      title: "Risks & Red Flags",
+      contradicts: 1,
+      adds: 2,
+      supports: 3,
+      noise: 0,
+      summary: "The new material introduces one potential contradiction and adds two new risk items.",
+    },
+    {
+      sectionId: "s-timeline",
+      sectionKind: "timeline",
+      title: "Timeline of Material Events",
+      contradicts: 0,
+      adds: 2,
+      supports: 1,
+      noise: 1,
+      summary: "Two new dated events identified; one existing event supported by additional evidence.",
+    },
+  ],
+  unchangedCount: 6,
+  resolved: [],
+};
+
+const MOCK_PSEUDONYMS: PseudonymEntry[] = [
+  { canonical: "Kenneth Lay", role: "Defendant", pseudonym: "Defendant_1", useCount: 47 },
+  { canonical: "Jeffrey Skilling", role: "Defendant", pseudonym: "Defendant_2", useCount: 38 },
+  { canonical: "Arthur Andersen LLP", role: "Auditor", pseudonym: "Auditor_1", useCount: 22 },
+  { canonical: "SEC", role: "Agency", pseudonym: "Agency_1", useCount: 15 },
+];
+
+const MOCK_RISKS: ResidualRisk[] = [
+  {
+    id: "rr-1",
+    kind: "specific_date",
+    excerpt: "disclosure on October 16, 2001",
+    note: "Exact dates in combination with specific corporate events are quasi-identifying.",
+    suggestion: "Generalize → Q4 2001",
+  },
+  {
+    id: "rr-2",
+    kind: "unique_fact_pattern",
+    excerpt: "the only Enron-affiliated SPE to receive preferential treatment in the restructuring",
+    note: "Unique fact patterns narrow the universe of matching matters to near-zero.",
+    suggestion: "Replace → 'affiliated SPE program'",
+  },
+];
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export default function BriefView({ brief }: { brief: Brief }) {
+  const b = brief as BriefV11;
   const citationOpen = useCitationPanel((s) => s.isOpen);
+  const readOnly     = useReadOnly();
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const sectionRefs = useRef<Record<string, HTMLElement>>({});
+
+  // ── Living Matters state ──
+  const versions   = b.versions ?? MOCK_VERSIONS;
+  const latestId   = versions[versions.length - 1]?.id ?? "v1";
+  const [viewingId, setViewingId] = useState<BriefVersionId>(latestId);
+  const isHistorical = viewingId !== latestId;
+
+  const [dragActive, setDragActive]   = useState(false);
+  const dragCounter = useRef(0);
+
+  const [showAddMaterial,     setShowAddMaterial]     = useState(false);
+  const [pendingFile,         setPendingFile]         = useState<File | null>(null);
+  const [showIngesting,       setShowIngesting]       = useState(false);
+  const [showImpactReport,    setShowImpactReport]    = useState(false);
+  const [showRegenPreview,    setShowRegenPreview]    = useState(false);
+  const [showVersionHistory,  setShowVersionHistory]  = useState(false);
+
+  // ── Handoff state ──
+  const [showConsent,         setShowConsent]         = useState(false);
+  const [consentGiven,        setConsentGiven]        = useState(false);
+  const [showHandoffComposer, setShowHandoffComposer] = useState(false);
+  const [showImportPanel,     setShowImportPanel]     = useState(false);
+
+  const externalResearch: ExternalResearch[] = b.externalResearch ?? [];
+
+  // Drag handlers — counter trick avoids flicker when crossing child elements
+  function handleDragEnter(e: React.DragEvent) {
+    e.preventDefault();
+    dragCounter.current++;
+    if (dragCounter.current === 1) setDragActive(true);
+  }
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault();
+    dragCounter.current--;
+    if (dragCounter.current === 0) setDragActive(false);
+  }
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+  }
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    dragCounter.current = 0;
+    setDragActive(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setPendingFile(file);
+      setShowAddMaterial(true);
+    }
+  }
+
+  function openHandoff() {
+    if (consentGiven) {
+      setShowHandoffComposer(true);
+    } else {
+      setShowConsent(true);
+    }
+  }
 
   // Derive matter metadata from the snapshot section.
   const snap = brief.sections.find((s) => s.kind === "snapshot") as
@@ -106,8 +265,32 @@ export default function BriefView({ brief }: { brief: Brief }) {
     };
   }, []);
 
+  const currentVersion  = versions.find((v) => v.id === latestId)  ?? versions[0];
+  const viewingVersion  = versions.find((v) => v.id === viewingId) ?? versions[0];
+
   return (
-    <>
+    <div
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag overlay */}
+      <MatterDragOverlay active={dragActive} />
+
+      {/* Historical mode banner */}
+      {isHistorical && (
+        <HistoricalBanner
+          viewingVersion={viewingVersion}
+          currentVersion={currentVersion}
+          onViewCurrent={() => setViewingId(latestId)}
+          onRestoreAsCurrent={() => {
+            // Creates a new version; wired via IPC in production
+            setViewingId(latestId);
+          }}
+        />
+      )}
+
       {/* Matter header band */}
       <div className="bg-paper-2 border-b border-rule">
         <div className="max-w-[1280px] mx-auto px-7 py-5 flex items-start justify-between gap-6">
@@ -121,7 +304,16 @@ export default function BriefView({ brief }: { brief: Brief }) {
               <ChevronLeft className="size-4" />
               Library
             </Link>
-            <h1 className="text-h1 m-0">{caption}</h1>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-h1 m-0">{caption}</h1>
+              {/* VersionChip — v1.1 */}
+              <VersionChip
+                versions={versions}
+                currentId={viewingId}
+                historical={isHistorical}
+                onOpenHistory={() => setShowVersionHistory(true)}
+              />
+            </div>
             <div className="flex items-center gap-3 mt-2 text-[13px] text-ink-3">
               {sc?.matterTypeGuess && <span>{sc.matterTypeGuess}</span>}
               {sc?.matterTypeGuess && <span>·</span>}
@@ -132,7 +324,37 @@ export default function BriefView({ brief }: { brief: Brief }) {
               <span>{lastActivity}</span>
             </div>
           </div>
+
           <div className="flex gap-2 shrink-0 pt-1">
+            {/* Add to matter — disabled in historical / read-only mode */}
+            {!isHistorical && (
+              <button
+                type="button"
+                disabled={readOnly}
+                onClick={() => setShowAddMaterial(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-rule-strong
+                           bg-surface text-sm text-ink hover:bg-surface-2 transition-colors duration-[120ms]
+                           disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Plus className="size-3.5" />
+                Add to matter
+              </button>
+            )}
+            {/* Research Handoff — disabled in historical / read-only mode */}
+            {!isHistorical && (
+              <button
+                type="button"
+                disabled={readOnly}
+                onClick={openHandoff}
+                title={readOnly ? "Subscription required" : "Send a redacted draft to outside research"}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-rule-strong
+                           bg-surface text-sm text-ink hover:bg-surface-2 transition-colors duration-[120ms]
+                           disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Share className="size-3.5" />
+                Research Handoff
+              </button>
+            )}
             <button
               type="button"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-rule-strong
@@ -140,13 +362,6 @@ export default function BriefView({ brief }: { brief: Brief }) {
             >
               <FileText className="size-3.5" />
               Export PDF
-            </button>
-            <button
-              type="button"
-              className="px-3 py-1.5 rounded-md border border-rule-strong bg-surface text-sm text-ink
-                         hover:bg-surface-2 transition-colors duration-[120ms]"
-            >
-              Regenerate
             </button>
           </div>
         </div>
@@ -164,6 +379,7 @@ export default function BriefView({ brief }: { brief: Brief }) {
           sections={brief.sections}
           activeSection={activeSection}
           contradictionCount={contradictionCount}
+          hasExternalResearch={externalResearch.length > 0}
           onJump={scrollToSection}
         />
 
@@ -173,21 +389,148 @@ export default function BriefView({ brief }: { brief: Brief }) {
               key={s.id}
               section={s}
               index={i}
+              wasRegenerated={false}
+              regeneratedAt={undefined}
               sectionRef={(el) => {
                 if (el) sectionRefs.current[s.id] = el;
               }}
             />
           ))}
+
+          {/* 09 External Research — only when findings exist */}
+          {externalResearch.length > 0 && (
+            <div
+              id="brief-external-research"
+              ref={(el) => { if (el) sectionRefs.current["external-research"] = el; }}
+            >
+              <ExternalResearchSection
+                findings={externalResearch}
+                onBringFindingsBack={() => setShowImportPanel(true)}
+              />
+            </div>
+          )}
         </article>
 
-        {/* CitationPanel occupies the 3rd grid column when open.
-            The component still renders fixed for now; CitationPanel.md will
-            convert it to in-grid positioning. */}
         {citationOpen && <CitationPanel />}
       </div>
 
       <AskAnything matterId={brief.matterId} />
-    </>
+
+      {/* ── Living Matters overlays / panels ── */}
+
+      {showAddMaterial && (
+        <AddMaterialPanel
+          sourceLabel={pendingFile?.name ?? "New source"}
+          sourceDetected={pendingFile ? `${pendingFile.type || "File"} · ${Math.round(pendingFile.size / 1024)} KB` : "Document"}
+          sourcePreview="First-line text preview will appear here after extraction."
+          onClose={() => { setShowAddMaterial(false); setPendingFile(null); }}
+          onIngest={() => {
+            setShowAddMaterial(false);
+            setShowIngesting(true);
+          }}
+        />
+      )}
+
+      {showIngesting && (
+        <IngestingPanel
+          onDone={() => {
+            setShowIngesting(false);
+            setShowImpactReport(true);
+          }}
+        />
+      )}
+
+      {showImpactReport && (
+        <ImpactReportOverlay
+          report={MOCK_IMPACT_REPORT}
+          onClose={() => setShowImpactReport(false)}
+          onSkip={() => setShowImpactReport(false)}
+          onShowChanges={() => {
+            setShowImpactReport(false);
+            setShowRegenPreview(true);
+          }}
+          onRegenerate={() => {
+            setShowImpactReport(false);
+            setShowRegenPreview(true);
+          }}
+        />
+      )}
+
+      {showRegenPreview && (
+        <RegenerationPreview
+          sections={[
+            {
+              sectionId: "s-risks",
+              sectionKind: "risks",
+              title: "Risks & Red Flags",
+              summary: "+1 contradicts · +2 adds · 3 supports",
+              priorVersionLabel: `Current — v${currentVersion.versionNumber}`,
+              nextVersionLabel:  `Proposed — v${currentVersion.versionNumber + 1}`,
+              nextRegenDate: new Date().toISOString().slice(0, 10),
+              prior: {
+                items: [
+                  { text: "No signed engagement letter found in the document set.", op: "kept" },
+                  { text: "Statute of limitations risk: complaint filed 3 years after alleged injury.", op: "kept" },
+                ],
+              },
+              next: {
+                items: [
+                  { text: "No signed engagement letter found in the document set.", op: "kept" },
+                  { text: "Statute of limitations risk: complaint filed 3 years after alleged injury.", op: "kept" },
+                  { text: "Auditor independence compromised by non-audit fee ratio exceeding 40%.", op: "added" },
+                  { text: "Side letter contradicts Form 10-K disclosure on SPE consolidation treatment.", op: "added" },
+                ],
+              },
+            },
+          ]}
+          onClose={() => setShowRegenPreview(false)}
+          onCommit={() => setShowRegenPreview(false)}
+        />
+      )}
+
+      {showVersionHistory && (
+        <VersionHistoryDrawer
+          versions={versions}
+          viewingId={viewingId}
+          latestId={latestId}
+          onClose={() => setShowVersionHistory(false)}
+          onJump={(id) => { setViewingId(id); setShowVersionHistory(false); }}
+          onRestoreAsCurrent={(id) => { setViewingId(latestId); setShowVersionHistory(false); }}
+        />
+      )}
+
+      {/* ── Research Handoff overlays / panels ── */}
+
+      {showConsent && (
+        <ConsentAffirmationModal
+          onClose={() => setShowConsent(false)}
+          onAffirm={() => {
+            setConsentGiven(true);
+            setShowConsent(false);
+            setShowHandoffComposer(true);
+          }}
+        />
+      )}
+
+      {showHandoffComposer && (
+        <HandoffComposer
+          matterId={brief.matterId}
+          pseudonyms={MOCK_PSEUDONYMS}
+          risks={MOCK_RISKS}
+          briefSnapshotText={sc ? `Matter type: ${sc.matterTypeGuess}. ${sc.documentCount} documents spanning ${sc.dateRange?.from ?? ""} to ${sc.dateRange?.to ?? ""}.` : ""}
+          onClose={() => setShowHandoffComposer(false)}
+          onCopyComplete={() => setShowHandoffComposer(false)}
+        />
+      )}
+
+      {showImportPanel && (
+        <ResearchImportPanel
+          onClose={() => setShowImportPanel(false)}
+          onSave={() => setShowImportPanel(false)}
+          pseudonyms={MOCK_PSEUDONYMS}
+        />
+      )}
+    </div>
   );
 }
 
@@ -197,11 +540,13 @@ function TOC({
   sections,
   activeSection,
   contradictionCount,
+  hasExternalResearch,
   onJump,
 }: {
   sections: BriefSection[];
   activeSection: string | null;
   contradictionCount: number;
+  hasExternalResearch: boolean;
   onJump: (id: string) => void;
 }) {
   return (
@@ -229,6 +574,22 @@ function TOC({
             )}
           </a>
         ))}
+        {/* External Research — only if findings exist */}
+        {hasExternalResearch && (
+          <a
+            href="#brief-external-research"
+            onClick={(e) => { e.preventDefault(); onJump("external-research"); }}
+            data-active={activeSection === "external-research" || undefined}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-sm text-[13px]
+                       text-ink-3 border-l-2 border-transparent transition-all duration-[120ms]
+                       hover:text-ink hover:bg-surface-2
+                       data-[active]:text-ink data-[active]:font-medium
+                       data-[active]:border-l-navy data-[active]:bg-surface-2"
+          >
+            <span className="font-mono-sm text-[11px] text-ink-4 w-3.5 shrink-0">09</span>
+            <span className="truncate">Ext. Research</span>
+          </a>
+        )}
       </div>
       <div className="h-px bg-rule my-6" />
       <div className="text-small text-ink-3 leading-[1.5] px-3">
@@ -247,10 +608,14 @@ function TOC({
 function BriefSectionView({
   section,
   index,
+  wasRegenerated,
+  regeneratedAt,
   sectionRef,
 }: {
   section: BriefSection;
   index: number;
+  wasRegenerated: boolean;
+  regeneratedAt: string | undefined;
   sectionRef: (el: HTMLElement | null) => void;
 }) {
   return (
@@ -259,18 +624,24 @@ function BriefSectionView({
       id={`brief-${section.id}`}
       className="mb-14 scroll-mt-24"
     >
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 gap-3">
         <h2 className="text-h2 m-0">
           <span className="font-mono-sm text-ink-4 mr-3 font-normal">
             {String(index + 1).padStart(2, "0")}
           </span>
           {SECTION_LABEL[section.kind]}
         </h2>
-        {section.suppressedCount > 0 && (
-          <span className="text-micro text-ink-4" title="Claims dropped by re-grounding pass">
-            {section.suppressedCount} suppressed
-          </span>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* UpdatedTag — shown for regenerated sections */}
+          {wasRegenerated && regeneratedAt && (
+            <UpdatedTag at={regeneratedAt} />
+          )}
+          {section.suppressedCount > 0 && (
+            <span className="text-micro text-ink-4" title="Claims dropped by re-grounding pass">
+              {section.suppressedCount} suppressed
+            </span>
+          )}
+        </div>
       </div>
       <SectionContent section={section} />
     </section>
@@ -461,10 +832,6 @@ function RisksRenderer({ section }: { section: RisksSection }) {
   const risks = section.content.risks;
   if (risks.length === 0) return <Empty>No risks flagged.</Empty>;
 
-  // Contradiction risks are surfaced in ContradictionsPanel; the remaining
-  // risks render as the prose list below it.
-  // The richer Contradiction type will be populated once the pipeline
-  // attaches it to the section payload. Until then the panel receives [].
   const contradictions: Contradiction[] = [];
   const nonContradictions = risks.filter((r) => r.kind !== "contradiction");
 
@@ -592,6 +959,4 @@ function FootnoteChip({
   );
 }
 
-// Keep old CitationFootnote export shape so the file can still be imported
-// from other modules during migration. BriefView uses FootnoteChip directly.
 export { FootnoteChip };

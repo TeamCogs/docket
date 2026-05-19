@@ -311,6 +311,140 @@ export interface SystemSnapshot {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// v1.1 — Living Matters
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type BriefVersionId = string;
+
+export interface BriefVersion {
+  id: BriefVersionId;
+  matterId: MatterId;
+  versionNumber: number;         // 1, 2, 3, … per matter
+  generatedAt: string;           // ISO-8601
+  trigger: "initial" | "add_source" | "manual_regen";
+  triggerSourceIds: string[];
+  triggerSummary: string;        // "+Andersen workpapers supplement"
+  sectionsRegenerated: BriefSectionKind[];
+  sectionsCarriedForward: BriefSectionKind[];
+  schemaVersion: "probate" | "family" | "pi" | "general";
+  modelVersion: string;
+  priorVersionId: BriefVersionId | null;
+}
+
+export interface BriefSectionVersion {
+  sectionVersionId: string;
+  versionId: BriefVersionId;
+  sectionKind: BriefSectionKind;
+  confidenceChip: ConfidenceChip;
+  wasRegenerated: boolean;
+  carriedFromVersionId: BriefVersionId | null;
+  regeneratedAt?: string;        // date of the regen that produced this version
+}
+
+export type ChangeKind = "supports" | "adds" | "contradicts" | "noise";
+
+export interface AffectedSectionImpact {
+  sectionId: SectionId;
+  sectionKind: BriefSectionKind;
+  title: string;
+  contradicts: number;
+  adds: number;
+  supports: number;
+  noise: number;
+  summary: string;
+}
+
+export interface ResolvedQuestion {
+  question: string;
+  resolvedBy: string;
+}
+
+export interface ImpactReport {
+  newSource: {
+    label: string;
+    newChunks: number;
+  };
+  againstVersion: { id: BriefVersionId; n: number };
+  affected: AffectedSectionImpact[];
+  unchangedCount: number;
+  resolved: ResolvedQuestion[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v1.1 — Research Handoff
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type HandoffGeneralizationDates     = "exact" | "quarter" | "year";
+export type HandoffGeneralizationAmounts   = "exact" | "bucket" | "redact";
+export type HandoffGeneralizationLocations = "keep" | "regional";
+
+export interface HandoffExport {
+  id: string;
+  matterId: MatterId;
+  createdAt: string;              // ISO-8601
+  destination: string;           // free-text label
+  briefVersionId: BriefVersionId;
+  generalizationDates:     HandoffGeneralizationDates;
+  generalizationAmounts:   HandoffGeneralizationAmounts;
+  generalizationLocations: HandoffGeneralizationLocations;
+  mapRetained: boolean;
+  mapBurnedAt: string | null;
+}
+
+export type PseudonymRole =
+  | "Defendant" | "Plaintiff" | "Witness" | "Counsel"
+  | "Issuer" | "Auditor" | "Agency" | "Entity";
+
+export interface PseudonymEntry {
+  canonical: string;
+  role: PseudonymRole;
+  pseudonym: string;             // "Defendant_1", "Witness_2", …
+  useCount: number;
+}
+
+export type ResidualRiskKind =
+  | "unique_fact_pattern" | "rare_entity"
+  | "specific_date" | "rare_geography";
+
+export interface ResidualRisk {
+  id: string;
+  kind: ResidualRiskKind;
+  excerpt: string;               // italic prose from the brief
+  note: string;                  // why it re-identifies
+  suggestion: string;            // e.g. "Generalize → Q4 2001"
+}
+
+export interface VerifiedCitation {
+  text: string;
+  verifiedVia: "CourtListener" | "Westlaw" | "I read the opinion";
+}
+
+export interface ExternalResearch {
+  id: string;
+  matterId: MatterId;
+  importedAt: string;            // ISO-8601
+  source: string;                // destination label from the handoff export
+  briefVersionId: BriefVersionId;
+  title: string;
+  body: string;                  // pseudonyms already reverse-substituted
+  verifiedCitations: VerifiedCitation[];
+}
+
+export interface CloudResearchConsent {
+  matterId: MatterId;
+  affirmedAt: string | null;
+  expiresAt: string | null;      // 12-month TTL from affirmedAt
+}
+
+// Extended Brief type for v1.1 — both fields are optional so v1.0 briefs load cleanly
+export interface BriefV11 extends Brief {
+  currentVersionId?: BriefVersionId;
+  versions?: BriefVersion[];
+  sectionVersions?: BriefSectionVersion[];
+  externalResearch?: ExternalResearch[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Zod schemas for runtime validation of LLM JSON output
 // ─────────────────────────────────────────────────────────────────────────────
 

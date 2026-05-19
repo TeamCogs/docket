@@ -306,21 +306,34 @@ five-second pre-brief confirmation showing "38 items in main cluster, 2
 outliers — review?" The lawyer confirms quickly. Default action: include
 outliers but flag them in the Open Questions section so they don't disappear.
 
-### 1.11 Eval harness
+### 1.11 Quality measurement
 
-A `pnpm eval` command runs a hand-curated golden set of question / expected-
-answer / expected-citation tuples and prints results to the terminal and to
-`docs/evals/<ISO_DATE>.md` per run.
+Docket measures itself two ways, on two different surfaces, for two
+different audiences. The distinction is load-bearing — conflating them
+was an earlier mistake that put a securities-corpus leaderboard in
+front of working lawyers.
+
+**Developer eval harness (repository artifact, not in-app).** A
+`pnpm eval` command runs a hand-curated golden set of question /
+expected-answer / expected-citation tuples and prints results to the
+terminal and to `docs/evals/<ISO_DATE>.md` per run. The latest run
+populates a table in the GitHub README. This is the artifact that
+proves the pipeline works on public data and catches regressions on
+every change — its audience is contributors, skeptical firm reviewers
+evaluating Docket pre-purchase, and anyone reading the repo. It is
+not a tab in the lawyer's app. The Enron corpus is a fixture used
+exclusively by this harness; nothing about Enron is exposed to a
+working lawyer.
 
 Measured per run:
 
 - **Retrieval recall@5** — did the correct chunk land in the top five?
-- **Citation precision** — does the rendered citation actually contain the
-  asserted fact?
-- **Faithfulness (LLM-as-judge)** — does the generated claim follow from the
-  cited chunk?
-- **Ungrounded-claim suppression rate** — how often does the re-grounding pass
-  catch hallucinations?
+- **Citation precision** — does the rendered citation actually contain
+  the asserted fact?
+- **Faithfulness (LLM-as-judge)** — does the generated claim follow
+  from the cited chunk?
+- **Ungrounded-claim suppression rate** — how often does the
+  re-grounding pass catch hallucinations?
 - **Latency per brief section** — keeps the performance budget honest.
 
 Baseline comparisons committed to the repo:
@@ -330,10 +343,50 @@ Baseline comparisons committed to the repo:
 - Vector-only, no rerank, no re-grounding
 - Whole-doc-into-context (no retrieval)
 
-v1 ships the Enron golden set (~50 tuples) as the primary eval corpus. Probate,
-family law, and PI golden sets are assembled from public-record material and
-ship in v1.1; until they do, the README is explicit that the published numbers
-are Enron-only. We would rather show empty cells than fabricated ones.
+v1.0 ships the Enron golden set (~50 tuples) as the primary eval
+corpus. Probate, family law, and PI golden sets are assembled from
+public-record material and ship in v1.1; until they do, the README is
+explicit that the published numbers are Enron-only. We would rather
+show empty cells than fabricated ones.
+
+**Matter Quality panel (in-app, per-matter).** What the lawyer
+actually sees inside the working app is a per-matter quality view of
+*their own brief on their own evidence*. It does not score the
+pipeline against a corpus; it characterizes the brief sitting in
+front of them. Four signals, all computed locally from the matter's
+LanceDB index and the brief that was just generated:
+
+- **Citation density.** Per section: how many claims have ≥1
+  citation, how many have ≥2, how many are single-source. Single-
+  source claims aren't wrong — they're worth a second look. The
+  panel flags them by count, not by alarm.
+- **Re-grounding suppression for this matter.** How many model-
+  produced claims the re-grounding pass dropped during this brief's
+  generation, and *what they were*. The dropped claims are surfaced
+  read-only ("these were the model's first drafts; they didn't
+  survive verification") so the lawyer sees what the pipeline
+  protected them from rather than just trusting that it did.
+- **Document coverage.** Which ingested workspace items were cited
+  at least once by the brief, and which were not. An uncited
+  document might be irrelevant background — or it might be the
+  surprise the lawyer wanted to know about. The panel makes the
+  uncited list one click away.
+- **Verification checklist.** Each claim's citation chip carries a
+  reviewed state. The lawyer marks a claim reviewed by visiting its
+  source span (or with a one-click affirm). The Matter Quality
+  panel summarizes "X of Y claims reviewed" — the brief is a
+  checklist that turns green as the lawyer works through it.
+
+The panel is read-only and never blocks. The lawyer can ship a brief
+with 12% verified claims; the panel just makes the state legible.
+Numbers in this panel are local to one matter and never leave the
+machine — there is no roll-up across matters, no telemetry, no
+"firm-wide quality dashboard."
+
+The dev eval harness and the Matter Quality panel share no UI
+surface and no audience. The harness measures *the engine* against a
+public benchmark; the panel measures *this brief on this evidence*
+for the lawyer working it. Two artifacts, two readers, two purposes.
 
 ### 1.12 Out of scope
 
@@ -727,7 +780,7 @@ the implementation prep at
 |   +---- Webview (Next.js 15 + React 19 + Tailwind + shadcn/ui) ----+   |
 |   |                                                                |   |
 |   |   Surfaces: Library · Matter Wizard · Brief · Source Viewer    |   |
-|   |             Ask Anything · Eval Lab · Settings                 |   |
+|   |             Ask Anything · Matter Quality · Settings           |   |
 |   |   IPC: invoke('workspace_add_source', ...) etc.                |   |
 |   +------------------------------|---------------------------------+   |
 |                                  |                                     |
@@ -813,7 +866,8 @@ auditable surface that supports the "no data leaves" claim.
 │   │   ├── vectors.lance/           # LanceDB tables for this matter
 │   │   ├── brief.json               # Latest brief output
 │   │   ├── qa_history.jsonl         # Persistent Ask Anything history
-│   │   ├── eval/                    # Eval results if run
+│   │   ├── quality.json             # Matter Quality panel cache (citation density,
+│   │   │                            # uncited docs, reviewed-claim state, suppression log)
 │   │   └── manifest.json            # Inventory, ingest log, file hashes
 │   └── ...
 └── logs/                            # Local-only; never uploaded
@@ -971,9 +1025,15 @@ get_qa_history(matter_id: MatterId) -> Vec<QA>
 get_source_span(chunk_id: ChunkId) -> SourceSpan
 open_source_at_page(doc_id: DocId, page: u32) -> ()
 
-// Eval
-run_eval(matter_id: MatterId, golden_set: PathBuf) -> EvalReport
-get_eval_history(matter_id: MatterId) -> Vec<EvalReport>
+// Matter Quality (per-matter, in-app)
+get_matter_quality(matter_id: MatterId) -> MatterQuality
+mark_claim_reviewed(matter_id: MatterId, claim_id: ClaimId) -> ()
+unmark_claim_reviewed(matter_id: MatterId, claim_id: ClaimId) -> ()
+get_uncited_documents(matter_id: MatterId) -> Vec<DocSummary>
+get_suppressed_claims(matter_id: MatterId, brief_version_id: BriefVersionId)
+  -> Vec<SuppressedClaim>
+// Note: the dev eval harness (`pnpm eval`) runs out-of-band via the repo's
+// CLI scripts and is NOT exposed to the webview. See §1.11.
 
 // Verification
 verify_offline() -> NetworkAudit
@@ -1010,9 +1070,19 @@ Design decision; the IPC contract is `ask(matter_id, question)` regardless.
 the cited span highlighted. Adjacent panel shows the claim that cited it.
 Keyboard shortcuts `j`/`k` to step through citations.
 
-**Eval Lab.** A `/eval` route showing the golden set, last run results per
-practice area, and a "run now" button. Honest about which practice areas have
-their golden sets shipped vs. which are pending.
+**Matter Quality panel.** A per-matter view of the brief's quality on
+*this matter's evidence*, opened from the matter view header. Four
+sections: citation density per brief section, the read-only list of
+claims the re-grounding pass dropped during generation, the list of
+ingested documents the brief never cited, and a verification
+checklist of every claim with the reviewed-state toggled by clicking
+through to the source span. The panel is read-only and never blocks
+the lawyer from shipping a brief; it makes quality state legible.
+Numbers are local to one matter and never aggregate across matters.
+Replaces the earlier "Eval Lab" surface, which surfaced public-corpus
+benchmark numbers that didn't address a working lawyer's question.
+The dev-side eval harness (`pnpm eval`, see §1.11) is unchanged but
+is a contributor/repo artifact and has no in-app counterpart.
 
 **Settings.** Sources & Permissions section (Full Disk Access status, Photos
 access, mail-store paths, scoped iMessage handle lists per matter), Network
@@ -1039,7 +1109,8 @@ seconds, not after a minute. Ask Anything answers stream the same way.
 | Ask Anything answer (warm, model loaded) | ≤ 4 seconds |
 | Citation viewer open | ≤ 200 ms |
 
-These get measured by the eval harness and printed in the README.
+These get measured by the dev eval harness (see §1.11) and printed in the
+GitHub README; per-matter latencies surface in the Matter Quality panel.
 
 ### 2.11 Hardware floor
 
@@ -1111,14 +1182,18 @@ scope honestly — v1.0 doesn't ship all eight ingest sources in week one.
 - **Demoable:** Build a family-law matter from a folder + scoped iMessage
   threads + a paste-in note + a photo, see the brief integrate everything.
 
-**Week 4 — Audio + eval + sign + ship.**
+**Week 4 — Audio + dev eval + Matter Quality + sign + ship.**
 - Whisper.cpp sidecar.
 - Audio ingest (voicemails, depo recordings dropped in).
 - 50-question Enron golden eval set, run committed to `docs/evals/`.
 - Probate golden set (smaller, ~20 tuples) committed.
-- README finalized with eval numbers.
+- GitHub README finalized with dev eval numbers (this is the repo-level
+  leaderboard, not an in-app surface).
+- Matter Quality panel wired to real data: citation density, suppression
+  list from this matter's brief, document coverage, verification checklist.
 - Tauri build, code-sign, notarize, GitHub Release with `.dmg`.
-- **Demoable:** Public GitHub repo with installable `.dmg`, eval leaderboard,
+- **Demoable:** Public GitHub repo with installable `.dmg`, dev eval
+  leaderboard in the README, per-matter Matter Quality panel in the app,
   honest staging notes for v1.1 work (additional practice areas, v2-moe
   embeddings, Windows port).
 
@@ -1130,7 +1205,7 @@ scope honestly — v1.0 doesn't ship all eight ingest sources in week one.
 | --- | --- |
 | Qwen3-32B inference too slow on average M-series | Auto-fallback to Qwen3-8B for sub-32 GB machines; measure and publish per-section latency |
 | OCR quality on scanned PDFs and photos lower than acceptable | "Low-confidence OCR" badge on affected items; manual correction via source viewer |
-| Re-grounding pass too aggressive, drops valid claims | Tune thresholds via eval harness; expose `--strict` / `--lenient` in Eval Lab |
+| Re-grounding pass too aggressive, drops valid claims | Tune thresholds via the dev eval harness; surface the suppression list in the Matter Quality panel so lawyers can see what was dropped from their own brief |
 | Whisper.cpp transcription quality on poor-audio voicemails | Show per-segment confidence; allow per-segment lawyer correction |
 | Apple notarization rejects bundled sidecar binaries | Build entitlements list early; budget extra days for first-time signing; validate each sidecar binary independently |
 | iMessage FDA permission request scares away users | First-run modal explains exactly what is and isn't read; scoping shown clearly per matter |

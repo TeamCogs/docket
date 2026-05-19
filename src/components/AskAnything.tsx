@@ -5,9 +5,17 @@ import { ArrowUp, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCitationPanel } from "./brief/citation-panel-store";
 import { useReadOnly } from "@/lib/license-store";
+import ReAskButton from "@/components/living-matters/ReAskButton";
+import PairedAnswerStrip from "@/components/living-matters/PairedAnswerStrip";
 import type { Citation, Claim, MatterId } from "@/lib/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ReAskResult {
+  asked: string;
+  askedAgainstVersion: number;
+  answer: Claim[];
+}
 
 interface QAEntry {
   id:        string;
@@ -16,6 +24,7 @@ interface QAEntry {
   declined:  boolean;
   answer:    Claim[];
   suppressed: number;
+  reask?: ReAskResult;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -25,11 +34,81 @@ export default function AskAnything({ matterId }: { matterId: MatterId }) {
   const openCitation  = useCitationPanel((s) => s.open);
   const citationOpen  = useCitationPanel((s) => s.isOpen);
 
-  const [q, setQ]           = useState("");
-  const [open, setOpen]     = useState(false);
+  const [q, setQ]             = useState("");
+  const [open, setOpen]       = useState(false);
   const [running, setRunning] = useState(false);
   const [history, setHistory] = useState<QAEntry[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Re-ask: runs the same question against the current chunk index.
+  // The original answer is preserved; the new answer appears below it.
+  async function reAsk(qaId: string) {
+    const entry = history.find((e) => e.id === qaId);
+    if (!entry || entry.reask) return; // already re-asked
+
+    const placeholder: ReAskResult = {
+      asked: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+      askedAgainstVersion: 1, // will be read from brief payload in production
+      answer: [],
+    };
+
+    setHistory((h) =>
+      h.map((e) => (e.id === qaId ? { ...e, reask: placeholder } : e)),
+    );
+
+    try {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matterId, question: entry.question }),
+      });
+      const data = (await res.json()) as {
+        answer: Array<{ text: string; citation: { chunkIds: string[]; grounded: "grounded" | "partial" } }>;
+      };
+
+      const claims: Claim[] = (data.answer ?? []).map((item, i) => ({
+        text: item.text,
+        citation: {
+          id:              `${qaId}-reask-${i}`,
+          chunkIds:        item.citation.chunkIds,
+          grounded:        item.citation.grounded,
+          groundingMethod: "embedding" as const,
+          internalScore:   0,
+        },
+      }));
+
+      setHistory((h) =>
+        h.map((e) =>
+          e.id === qaId
+            ? { ...e, reask: { ...placeholder, answer: claims } }
+            : e,
+        ),
+      );
+    } catch {
+      setHistory((h) =>
+        h.map((e) =>
+          e.id === qaId
+            ? {
+                ...e,
+                reask: {
+                  ...placeholder,
+                  answer: [{
+                    text: "Re-ask could not be completed. Check that Ollama is running.",
+                    citation: {
+                      id: `${qaId}-reask-err`,
+                      chunkIds: [],
+                      grounded: "partial" as const,
+                      groundingMethod: "overlap" as const,
+                      internalScore: 0,
+                    },
+                  }],
+                },
+              }
+            : e,
+        ),
+      );
+    }
+  }
 
   async function ask() {
     const question = q.trim();
@@ -139,6 +218,7 @@ export default function AskAnything({ matterId }: { matterId: MatterId }) {
                     index={i}
                     running={running && i === 0}
                     onCite={openCitation}
+                    onReAsk={reAsk}
                   />
                 ))}
               </div>
@@ -216,11 +296,13 @@ function QAItem({
   index,
   running,
   onCite,
+  onReAsk,
 }: {
   qa: QAEntry;
   index: number;
   running: boolean;
   onCite: (c: Citation) => void;
+  onReAsk: (qaId: string) => void;
 }) {
   return (
     <div className="rounded-md border border-rule bg-surface p-4 shadow-1">
@@ -277,6 +359,22 @@ function QAItem({
           {qa.suppressed} ungrounded claim{qa.suppressed > 1 ? "s" : ""} suppressed
           by the re-grounding pass.
         </div>
+      )}
+
+      {/* Re-ask affordance — only shown once answer is ready */}
+      {!running && qa.answer.length > 0 && (
+        <div className="flex justify-end mt-3">
+          <ReAskButton
+            reasked={!!qa.reask}
+            reaskedAgainstVersion={qa.reask?.askedAgainstVersion}
+            onClick={() => onReAsk(qa.id)}
+          />
+        </div>
+      )}
+
+      {/* Paired answer strip — shown after re-ask completes */}
+      {qa.reask && (
+        <PairedAnswerStrip reask={qa.reask} onCite={onCite} />
       )}
     </div>
   );

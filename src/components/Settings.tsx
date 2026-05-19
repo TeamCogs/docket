@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { useLicenseStore } from "@/lib/license-store";
 import type { LicenseKind } from "@/lib/license-store";
 import { useFirstRunStore } from "@/lib/firstrun-store";
+import HandoffAuditSection from "@/components/handoff/HandoffAuditSection";
+import type { HandoffExport } from "@/lib/types";
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
@@ -371,7 +373,23 @@ function GroundingCard() {
 
 // ─── Page component ───────────────────────────────────────────────────────────
 
+// Placeholder exports for Settings page — empty until a matter is in scope.
+// In production, this is populated from the active matter's handoff_exports table.
+const PLACEHOLDER_EXPORTS: HandoffExport[] = [];
+
 export default function Settings() {
+  const [exports, setExports] = useState<HandoffExport[]>(PLACEHOLDER_EXPORTS);
+
+  function handleBurnMap(exportId: string) {
+    setExports((prev) =>
+      prev.map((e) =>
+        e.id === exportId
+          ? { ...e, mapRetained: false, mapBurnedAt: new Date().toISOString().slice(0, 10) }
+          : e,
+      ),
+    );
+  }
+
   return (
     <div className="max-w-[920px] mx-auto px-7 pt-9 pb-20">
       <header className="mb-6">
@@ -388,6 +406,7 @@ export default function Settings() {
         <NetworkAuditCard />
         <SourcesPermissionsCard />
         <GroundingCard />
+        <HandoffAuditSection exports={exports} onBurnMap={handleBurnMap} />
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 import { AlertOctagon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCitationPanel } from "./citation-panel-store";
+import NewContradictionTag from "@/components/living-matters/NewContradictionTag";
 import type { Citation } from "@/lib/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ export interface Contradiction {
   b:         ContradictionSide;
   note?:     string;
   noteCite?: string;   // chunk_id for the bridging note
+  isNew?:    boolean;  // added by the most recent regen — shows NEW tag
 }
 
 // Wrap a raw chunk_id into a minimal Citation so FootnoteChip / the panel store
@@ -47,6 +49,8 @@ export default function ContradictionsPanel({
 }) {
   if (contradictions.length === 0) return null;
 
+  const newCount = contradictions.filter((c) => c.isNew).length;
+
   return (
     <div className="mb-6 bg-surface border border-brick-soft-2 rounded-[10px] overflow-hidden">
       <header className="flex items-center gap-3 px-4 py-3
@@ -54,6 +58,11 @@ export default function ContradictionsPanel({
         <AlertOctagon className="size-4 text-brick shrink-0" strokeWidth={2.2} />
         <span className="font-medium text-brick text-sm">
           {contradictions.length} contradiction{contradictions.length !== 1 ? "s" : ""} across documents
+          {newCount > 0 && (
+            <span className="ml-1.5 font-mono-sm text-[11px] font-normal opacity-80">
+              · {newCount} NEW
+            </span>
+          )}
         </span>
         <span className="text-small text-brick/70 ml-auto">
           Surfaced by the re-grounding pass
@@ -94,6 +103,7 @@ function ContradictionRow({
           {index + 1}
         </span>
         <span className="font-medium text-[14.5px] text-ink">{c.headline}</span>
+        {c.isNew && <NewContradictionTag />}
       </div>
 
       {/* Diff — 3-col grid: side A · vs · side B */}

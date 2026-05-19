@@ -130,7 +130,10 @@ Open `http://localhost:3000`. You should see:
 - Library page with one mock "Enron — first read" matter.
 - Click into the mock matter → see the eight-section brief render.
 - Click any footnote → citation panel slides in (mobile) or pops out (desktop).
-- Eval Lab page → the placeholder comparison table.
+- Matter Quality panel (link in the matter view header) → the placeholder
+  citation-density / coverage / verification view. *(If the shipped scaffold
+  still has the old `/eval` Enron-leaderboard route, that route is deprecated;
+  see Phase 7 for the swap.)*
 - Settings page → your real system specs detected.
 
 If all of this renders, the scaffold is healthy. Ctrl-C the server.
@@ -560,9 +563,13 @@ just plugs in as the initial value loader.
 
 ---
 
-## Phase 7 — First real eval run (~1 hour)
+## Phase 7 — First real eval run + swap Eval Lab for Matter Quality (~90 minutes)
 
-Now you have one matter with one brief. Run the eval harness against it.
+Two related tasks. First, run the developer eval harness against your matter
+to get real recall@5 numbers for the GitHub README. Second, retire the in-app
+`/eval` Enron-leaderboard route and replace it with the Matter Quality panel
+the spec now describes (see [`Docket-SPEC.md §1.11`](../Docket-SPEC.md#111-quality-measurement)
+and [`docs/MATTER-QUALITY-BRIEF.md`](./MATTER-QUALITY-BRIEF.md)).
 
 ### 7.1 Expand the golden set
 
@@ -576,7 +583,7 @@ focused on the documents you actually ingested. Each line:
 For `docId`, peek at `data/matters/demo-enron/manifest.json` (or query
 LanceDB) to get the actual sha256 hash prefix of each document.
 
-### 7.2 Run the eval
+### 7.2 Run the dev eval harness
 
 The shipped `eval/run.ts` is a stub. Wire it to actually retrieve over your
 matter:
@@ -618,10 +625,35 @@ pnpm eval
 ```
 
 You'll get a real recall@5 number. Commit the results file in `docs/evals/`.
-This is the artifact that grounds Docket's quality claims in measured numbers
-rather than adjectives. Every subsequent change to retrieval, reranking, or
-re-grounding gets tested against the same harness, and regressions show up
-the moment they happen.
+Update the table in the GitHub README from the latest run. This is the
+artifact that grounds Docket's quality claims in measured numbers rather
+than adjectives. **The harness stays in the repo. It does not live in the
+in-app UX.** It exists for contributors, regression detection, and skeptical
+firm reviewers evaluating Docket pre-purchase.
+
+### 7.3 Retire the `/eval` route, scaffold the Matter Quality panel
+
+The earlier scaffold added an in-app `/eval` route that mirrored the
+public-corpus leaderboard inside the working lawyer's app. That route is
+deprecated. Delete `src/app/eval/page.tsx` and the `EvalTable` component;
+also remove the Eval Lab link from any nav.
+
+In its place, scaffold a per-matter Matter Quality panel under
+`src/components/matter-quality/` per
+[`docs/matter-quality-implementation.md`](./matter-quality-implementation.md):
+
+- Route: `/matter/[matterId]/quality`, opened from a "Quality" affordance in
+  the matter view header.
+- Four read-only sections: citation density, re-grounding suppression list,
+  uncited documents, verification checklist.
+- Data source: a `quality.json` cache in the matter directory, computed
+  after each brief generation.
+- IPC: `get_matter_quality`, `mark_claim_reviewed`, `unmark_claim_reviewed`,
+  `get_uncited_documents`, `get_suppressed_claims` (see §2.7).
+
+Mock the data in this phase if the real engine numbers aren't yet wired —
+the design brief is the source of truth for the surfaces. Wire the real
+computation in Phase 8 of v1.0 work.
 
 ---
 
@@ -671,7 +703,10 @@ they're still fresh.
   order when the sidecar isn't running).
 - Domain-agnostic retrieval queries that will accept any legal practice area
   once the per-area brief schemas land in week 2.
-- A first eval run with actual recall@5, citation precision, and faithfulness
+- The deprecated `/eval` Enron-leaderboard route removed from the app, and
+  the Matter Quality panel scaffolded in its place (mocked data is fine
+  for week 1; real wiring in v1.0 Phase 8).
+- A first dev-eval run with actual recall@5, citation precision, and faithfulness
   numbers committed to the repo.
 - A week-1 build notes entry capturing what came up.
 

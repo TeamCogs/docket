@@ -49,7 +49,11 @@ Every claim in the brief links to the exact source span. The renderer physically
 
 After the brief renders, an **Ask Anything** input lets the lawyer query the matter conversationally. "What did the client say in the August 14 voicemail about the deductible?" "Which exhibits does the November 8 letter reference that aren't in the folder?" Every answer is cited the same way the brief is. The discipline of Ask Anything: it retrieves and cites; it never drafts. No demand letters, no motions, no strategy advice. Briefpoint, EvenUp, and Spellbook own those lanes.
 
-## Eval
+## Quality measurement
+
+Docket measures itself two ways, on two surfaces, for two different readers. They share no UI and no audience, and conflating them was an earlier design mistake worth being explicit about.
+
+### Developer eval harness (this repo, public)
 
 The repository ships a hand-curated golden set of question / expected-answer / expected-citation tuples over the Enron demo corpus, plus a runner that compares Docket against three baselines:
 
@@ -62,9 +66,20 @@ The repository ships a hand-curated golden set of question / expected-answer / e
 
 Numbers are blank deliberately — they fill in after `pnpm eval` runs against the real Enron corpus. Results write to `docs/evals/<ISO_DATE>.md` per run and commit permanently; the latest run becomes the table above.
 
-v1.0 publishes Enron numbers only. Probate, family law, and PI golden sets are under assembly from public-record material and ship in v1.1. The README will be transparent about which practice areas have measured numbers as those evals come online; better to show empty cells than fabricated ones.
+v1.0 publishes Enron numbers only. Probate, family law, and PI golden sets are under assembly from public-record material and ship in v1.1. The README is transparent about which practice areas have measured numbers as those evals come online; better to show empty cells than fabricated ones.
 
-The Eval Lab page in the app surfaces the latest numbers per practice area and lets you re-run interactively. Two things the harness is specifically designed to measure: (1) how much citation precision the re-grounding pass actually buys, and (2) the lift from the cross-encoder reranker. Both are claims that should be numbers, not adjectives.
+The harness is a contributor / repo / pre-purchase-evaluator artifact. Two things it specifically measures: (1) how much citation precision the re-grounding pass actually buys, and (2) the lift from the cross-encoder reranker. Both are claims that should be numbers, not adjectives. **It is not a tab in the lawyer's app** — a securities-corpus leaderboard doesn't address a working lawyer's question about *their* matter.
+
+### Matter Quality panel (in-app, per-matter)
+
+What a working lawyer sees inside Docket is a per-matter quality view of *their own brief on their own evidence*. Four read-only signals, all computed locally from the matter's LanceDB index and the brief that was just generated:
+
+- **Citation density** — per section: claims with ≥1 citation, ≥2 citations, single-source.
+- **Re-grounding suppression** — the read-only list of claims the model produced that didn't survive re-grounding, surfaced as "here's what the pipeline caught."
+- **Document coverage** — ingested documents the brief never cited; the surprise may live there.
+- **Verification checklist** — every claim has a reviewed-state, toggled by clicking through to its source span; the brief becomes a checklist that turns green as the lawyer works it.
+
+The panel is read-only and never blocks shipping. Numbers are local to one matter, never aggregated, never sent anywhere. See [`docs/MATTER-QUALITY-BRIEF.md`](docs/MATTER-QUALITY-BRIEF.md) for the design brief and [`docs/matter-quality-implementation.md`](docs/matter-quality-implementation.md) for the implementation prep.
 
 ## Stack
 

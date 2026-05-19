@@ -51,7 +51,7 @@ itself.** The paste is the air-gap.
 | Settings | New **Handoff Audit** section shows a per-matter log of every export. |
 | First-run | No change. Research Handoff is matter-scoped, not app-scoped. |
 | Ask Anything | No change. Q&A stays local. |
-| Eval Lab | New row for Redaction Recall and False-Positive rate (engineering surface, not for Claude Design). |
+| Dev eval harness (repo) | New row for Redaction Recall and False-Positive rate in the `pnpm eval` output (contributor surface, not in-app, not for Claude Design). |
 
 ---
 
